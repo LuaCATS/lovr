@@ -13,6 +13,14 @@ function lovr.event.clear() end
 
 ---This function returns a Lua iterator for all of the unprocessed items in the event queue.  Each event consists of a name as a string, followed by event-specific arguments.  This function is called in the default implementation of `lovr.run`, so it is normally not necessary to poll for events yourself.
 ---
+---#### Example:
+---
+---```lua
+---for name, arg1, arg2, arg3 in lovr.event.poll() do
+---  print(name, arg1, arg2, arg3)
+---end
+---```
+---
 ---@return function iterator The iterator function, usable in a for loop.
 function lovr.event.poll() end
 
@@ -20,7 +28,7 @@ function lovr.event.poll() end
 ---
 ---#### Notes:
 ---
----Only nil, booleans, numbers, strings, and LÖVR objects are supported types for event data.
+---Arguments can be nil, booleans, numbers, strings, lightuserdata, vectors, tables, and LÖVR objects.
 ---
 ---@param name string The name of the event.
 ---@param ... any The arguments for the event.  Currently, up to 4 are supported.
@@ -30,7 +38,7 @@ function lovr.event.push(name, ...) end
 ---
 ---#### Notes:
 ---
----This function is equivalent to calling `lovr.event.push('quit', <args>)`.
+---This function is equivalent to calling `lovr.event.push('quit', code)`.
 ---
 ---The event won't be processed until the next time `lovr.event.poll` is called.
 ---

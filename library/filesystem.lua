@@ -40,25 +40,16 @@ lovr.filesystem = {}
 ---If the file does not exist, it is created.
 ---
 ---@param filename string The file to append to.
----@param content string A string to write to the end of the file.
----@return number bytes The number of bytes actually appended to the file.
+---@param content string | Blob A string or Blob to append to the file.
+---@return boolean success Whether the operation was successful.
+---@return string | nil error The error message, or `nil` if there was no error.
 function lovr.filesystem.append(filename, content) end
 
----Appends content to the end of a file.
----
----#### Notes:
----
----If the file does not exist, it is created.
----
----@param filename string The file to append to.
----@param blob Blob A Blob containing data to append to the file.
----@return number bytes The number of bytes actually appended to the file.
-function lovr.filesystem.append(filename, blob) end
-
----Creates a directory in the save directory.  Any parent directories that don't exist will also be created.
+---Creates a directory in the save directory.  Also creates any intermediate directories that don't exist.
 ---
 ---@param path string The directory to create, recursively.
 ---@return boolean success Whether the directory was created.
+---@return string | nil error The error message.
 function lovr.filesystem.createDirectory(path) end
 
 ---Returns the application data directory.  This will be something like:
@@ -67,7 +58,7 @@ function lovr.filesystem.createDirectory(path) end
 ---- `/home/user/.config` on Linux.
 ---- `/Users/user/Library/Application Support` on macOS.
 ---
----@return string path The absolute path to the appdata directory.
+---@return string | nil path The absolute path to the appdata directory.
 function lovr.filesystem.getAppdataDirectory() end
 
 ---Returns a sorted table containing all files and folders in a single directory.
@@ -77,12 +68,12 @@ function lovr.filesystem.getAppdataDirectory() end
 ---This function calls `table.sort` to sort the results, so if `table.sort` is not available in the global scope the results are not guaranteed to be sorted.
 ---
 ---@param path string The directory.
----@return table items A table with a string for each file and subfolder in the directory.
+---@return {string} items A table with a string for each file and subfolder in the directory.
 function lovr.filesystem.getDirectoryItems(path) end
 
 ---Returns the absolute path of the LÖVR executable.
 ---
----@return string path The absolute path of the LÖVR executable, or `nil` if it is unknown.
+---@return string | nil path The absolute path of the LÖVR executable, or `nil` if it is unknown.
 function lovr.filesystem.getExecutablePath() end
 
 ---Returns the identity of the game, which is used as the name of the save directory.  The default is `default`.  It can be changed using `t.identity` in `lovr.conf`.
@@ -91,19 +82,20 @@ function lovr.filesystem.getExecutablePath() end
 ---
 ---On Android, this is always the package id (like `org.lovr.app`).
 ---
----@return string identity The name of the save directory, or `nil` if it isn't set.
+---@return string | nil identity The name of the save directory, or `nil` if it isn't set.
 function lovr.filesystem.getIdentity() end
 
 ---Returns when a file was last modified, since some arbitrary time in the past.
 ---
 ---@param path string The file to check.
----@return number time The modification time of the file, in seconds, or `nil` if it's unknown.
+---@return number | nil time The modification time of the file, in seconds, or `nil` if there was an error.
+---@return string | nil error The error message, if there was an error.
 function lovr.filesystem.getLastModified(path) end
 
 ---Get the absolute path of the mounted archive containing a path in the virtual filesystem.  This can be used to determine if a file is in the game's source directory or the save directory.
 ---
 ---@param path string The path to check.
----@return string realpath The absolute path of the mounted archive containing `path`.
+---@return string | nil realpath The absolute path of the mounted archive containing `path`, or `nil` if the file is not in the virtual filesystem.
 function lovr.filesystem.getRealDirectory(path) end
 
 ---Returns the require path.  The require path is a semicolon-separated list of patterns that LÖVR will use to search for files when they are `require`d.  Any question marks in the pattern will be replaced with the module that is being required.  It is similar to Lua\'s `package.path` variable, but the main difference is that the patterns are relative to the virtual filesystem.
@@ -135,22 +127,23 @@ function lovr.filesystem.getSaveDirectory() end
 ---If the file does not exist, an error is thrown.
 ---
 ---@param file string The file.
----@return number size The size of the file, in bytes.
+---@return number | nil size The size of the file, in bytes, or `nil` if there was an error.
+---@return string | nil error The error message, if the operation was not successful.
 function lovr.filesystem.getSize(file) end
 
 ---Get the absolute path of the project's source directory or archive.
 ---
----@return string path The absolute path of the project's source, or `nil` if it's unknown.
+---@return string | nil path The absolute path of the project's source, or `nil` if it's unknown.
 function lovr.filesystem.getSource() end
 
 ---Returns the absolute path of the user's home directory.
 ---
----@return string path The absolute path of the user's home directory.
+---@return string | nil path The absolute path of the user's home directory.
 function lovr.filesystem.getUserDirectory() end
 
 ---Returns the absolute path of the working directory.  Usually this is where the executable was started from.
 ---
----@return string path The current working directory, or `nil` if it's unknown.
+---@return string | nil path The current working directory, or `nil` if it's unknown.
 function lovr.filesystem.getWorkingDirectory() end
 
 ---Check if a path exists and is a directory.
@@ -217,6 +210,7 @@ function lovr.filesystem.load(filename, mode) end
 ---@param append? boolean Whether the archive will be added to the end or the beginning of the search path.
 ---@param root? string A subdirectory inside the archive to use as the root.  If `nil`, the actual root of the archive is used.
 ---@return boolean success Whether the archive was successfully mounted.
+---@return string | nil error The error message, if the archive failed to mount.
 function lovr.filesystem.mount(path, mountpoint, append, root) end
 
 ---Creates a new Blob that contains the contents of a file.
@@ -247,15 +241,10 @@ function lovr.filesystem.newFile(path, mode) end
 
 ---Read the contents of a file.
 ---
----#### Notes:
----
----If the file does not exist or cannot be read, nil is returned.
----
 ---@param filename string The name of the file to read.
----@param bytes? number The number of bytes to read (if -1, all bytes will be read).
----@return string contents The contents of the file.
----@return number bytes The number of bytes read from the file.
-function lovr.filesystem.read(filename, bytes) end
+---@return string | nil contents The contents of the file, or nil if the file could not be read.
+---@return string | nil error The error message, if any.
+function lovr.filesystem.read(filename) end
 
 ---Remove a file or directory in the save directory.
 ---
@@ -267,6 +256,7 @@ function lovr.filesystem.read(filename, bytes) end
 ---
 ---@param path string The file or directory to remove.
 ---@return boolean success Whether the path was removed.
+---@return string | nil error The error message, if any.
 function lovr.filesystem.remove(path) end
 
 ---Set the name of the save directory.  This function can only be called once and is called automatically at startup, so this function normally isn't called manually.  However, the identity can be changed by setting the `t.identity` option in `lovr.conf`.
@@ -314,24 +304,10 @@ function lovr.filesystem.watch() end
 ---If the path contains subdirectories, all of the parent directories need to exist first or the write will fail.  Use `lovr.filesystem.createDirectory` to make sure they're created first.
 ---
 ---@param filename string The file to write to.
----@param content string A string to write to the file.
+---@param content string | Blob A string or Blob to write to the file.
 ---@return boolean success Whether the write was successful.
+---@return string error The error message, if there was an error.
 function lovr.filesystem.write(filename, content) end
-
----Write to a file in the save directory.
----
----#### Notes:
----
----If the file does not exist, it is created.
----
----If the file already has data in it, it will be replaced with the new content.
----
----If the path contains subdirectories, all of the parent directories need to exist first or the write will fail.  Use `lovr.filesystem.createDirectory` to make sure they're created first.
----
----@param filename string The file to write to.
----@param blob Blob A Blob containing data to write to the file.
----@return boolean success Whether the write was successful.
-function lovr.filesystem.write(filename, blob) end
 
 ---A File is an object that provides read or write access to a file on the filesystem.
 ---@class File

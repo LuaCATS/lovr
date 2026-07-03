@@ -16,22 +16,9 @@ lovr.graphics = {}
 ---If the shader fails to compile, an error will be thrown with the error message.
 ---
 ---@param stage ShaderStage The type of shader to compile.
----@param source string A string or filename with shader code.
+---@param source string | Blob A string, filename, or Blob with shader code.
 ---@return Blob bytecode A Blob containing compiled SPIR-V code.
 function lovr.graphics.compileShader(stage, source) end
-
----Compiles shader code to SPIR-V bytecode.  The bytecode can be passed to `lovr.graphics.newShader` to create shaders, which will be faster than creating it from GLSL. The bytecode is portable, so bytecode compiled on one platform will work on other platforms. This allows shaders to be precompiled in a build step.
----
----#### Notes:
----
----The input can be GLSL or SPIR-V.  If it's SPIR-V, it will be returned unchanged as a Blob.
----
----If the shader fails to compile, an error will be thrown with the error message.
----
----@param stage ShaderStage The type of shader to compile.
----@param blob Blob A Blob containing shader code.
----@return Blob bytecode A Blob containing compiled SPIR-V code.
-function lovr.graphics.compileShader(stage, blob) end
 
 ---Returns the global background color.  The textures in a render pass will be cleared to this color at the beginning of the pass if no other clear option is specified.  Additionally, the headset and window will be cleared to this color before rendering.
 ---
@@ -48,998 +35,6 @@ function lovr.graphics.compileShader(stage, blob) end
 ---@return number b The blue component of the background color.
 ---@return number a The alpha component of the background color.
 function lovr.graphics.getBackgroundColor() end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param size number The size of the Buffer, in bytes.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(size) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param blob Blob A Blob with the initial contents of the Buffer.  The size of the Blob will be used to determine the length of the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(blob) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param format {layout: DataLayout, stride: number} A list of fields in the Buffer.
----@param length? number The length of the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(format, length) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param format {layout: DataLayout, stride: number} A list of fields in the Buffer.
----@param data table The initial data to put into the Buffer.  The length of the Buffer will be determined by the contents of the table.  The contents can be a mix of tables, numbers, and vectors, but the length calculation requires each field to consistently use one type of data.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(format, data) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param format {layout: DataLayout, stride: number} A list of fields in the Buffer.
----@param blob Blob A Blob with the initial contents of the Buffer.  The size of the Blob will be used to determine the length of the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(format, blob) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param type DataType The type of each item in the Buffer.
----@param length? number The length of the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(type, length) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param type DataType The type of each item in the Buffer.
----@param data table The initial data to put into the Buffer.  The length of the Buffer will be determined by the contents of the table.  The contents can be a mix of tables, numbers, and vectors, but the length calculation requires each field to consistently use one type of data.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(type, data) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param type DataType The type of each item in the Buffer.
----@param blob Blob A Blob with the initial contents of the Buffer.  The size of the Blob will be used to determine the length of the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(type, blob) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param length? number The length of the Buffer.
----@param type DataType The type of each item in the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(length, type) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param data table The initial data to put into the Buffer.  The length of the Buffer will be determined by the contents of the table.  The contents can be a mix of tables, numbers, and vectors, but the length calculation requires each field to consistently use one type of data.
----@param type DataType The type of each item in the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(data, type) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param length? number The length of the Buffer.
----@param format {layout: DataLayout, stride: number} A list of fields in the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(length, format) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param data table The initial data to put into the Buffer.  The length of the Buffer will be determined by the contents of the table.  The contents can be a mix of tables, numbers, and vectors, but the length calculation requires each field to consistently use one type of data.
----@param format {layout: DataLayout, stride: number} A list of fields in the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(data, format) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param blob Blob A Blob with the initial contents of the Buffer.  The size of the Blob will be used to determine the length of the Buffer.
----@param type DataType The type of each item in the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(blob, type) end
-
----Returns a temporary Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field, used to match table keys and vertex attribute names.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.getBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.getBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.getBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.getBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.getBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.getBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.getBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param blob Blob A Blob with the initial contents of the Buffer.  The size of the Blob will be used to determine the length of the Buffer.
----@param format {layout: DataLayout, stride: number} A list of fields in the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.getBuffer(blob, format) end
 
 ---Returns the default Font.  The default font is Varela Round, created at 32px with a spread value of `4.0`.  It's used by `Pass:text` if no Font is provided.
 ---
@@ -1258,89 +253,22 @@ function lovr.graphics.getFeatures() end
 ---@return table limits
 function lovr.graphics.getLimits() end
 
----Creates and returns a temporary Pass object.
+---Returns various statistics about GPU usage.
 ---
----#### Notes:
----
----Fun facts about render passes:
----
----- Textures must have been created with the `render` `TextureUsage`.
----- Textures must have the same dimensions, layer counts, and sample counts.
----- When rendering to textures with multiple layers, each draw will be broadcast to all layers.
----  Render passes have multiple "views" (cameras), and each layer uses a corresponding view,
----  allowing each layer to be rendered from a different viewpoint.  This enables fast stereo
----  rendering, but can also be used to efficiently render to cubemaps.  The `ViewIndex` variable
----  can also be used in shaders to set up any desired per-view behavior.
----- Mipmaps will automatically be generated for textures at the end of the render pass.
----- It's okay to have zero color textures, but in this case there must be a depth texture.
----- It's possible to render to a specific mipmap level of a Texture, or a subset of its layers, by
----  rendering to texture views, see `lovr.graphics.newTextureView`.
----
----For `compute` passes, all of the commands in the pass act as though they run in parallel.  This means that writing to the same element of a buffer twice, or writing to it and reading from it again is not guaranteed to work properly on all GPUs.  If compute or transfers need to be sequenced, multiple passes should be used.  It is, however, completely fine to read and write to non-overlapping regions of the same buffer or texture.
----
----@param type PassType The type of pass to create.
----@return Pass pass The new Pass.
-function lovr.graphics.getPass(type) end
-
----Creates and returns a temporary Pass object.
----
----#### Notes:
----
----Fun facts about render passes:
----
----- Textures must have been created with the `render` `TextureUsage`.
----- Textures must have the same dimensions, layer counts, and sample counts.
----- When rendering to textures with multiple layers, each draw will be broadcast to all layers.
----  Render passes have multiple "views" (cameras), and each layer uses a corresponding view,
----  allowing each layer to be rendered from a different viewpoint.  This enables fast stereo
----  rendering, but can also be used to efficiently render to cubemaps.  The `ViewIndex` variable
----  can also be used in shaders to set up any desired per-view behavior.
----- Mipmaps will automatically be generated for textures at the end of the render pass.
----- It's okay to have zero color textures, but in this case there must be a depth texture.
----- It's possible to render to a specific mipmap level of a Texture, or a subset of its layers, by
----  rendering to texture views, see `lovr.graphics.newTextureView`.
----
----For `compute` passes, all of the commands in the pass act as though they run in parallel.  This means that writing to the same element of a buffer twice, or writing to it and reading from it again is not guaranteed to work properly on all GPUs.  If compute or transfers need to be sequenced, multiple passes should be used.  It is, however, completely fine to read and write to non-overlapping regions of the same buffer or texture.
----
----@param type PassType The type of pass to create.
----@param texture Texture The texture the render pass will render to.  Ignored for non-render passes.
----@return Pass pass The new Pass.
-function lovr.graphics.getPass(type, texture) end
-
----Creates and returns a temporary Pass object.
----
----#### Notes:
----
----Fun facts about render passes:
----
----- Textures must have been created with the `render` `TextureUsage`.
----- Textures must have the same dimensions, layer counts, and sample counts.
----- When rendering to textures with multiple layers, each draw will be broadcast to all layers.
----  Render passes have multiple "views" (cameras), and each layer uses a corresponding view,
----  allowing each layer to be rendered from a different viewpoint.  This enables fast stereo
----  rendering, but can also be used to efficiently render to cubemaps.  The `ViewIndex` variable
----  can also be used in shaders to set up any desired per-view behavior.
----- Mipmaps will automatically be generated for textures at the end of the render pass.
----- It's okay to have zero color textures, but in this case there must be a depth texture.
----- It's possible to render to a specific mipmap level of a Texture, or a subset of its layers, by
----  rendering to texture views, see `lovr.graphics.newTextureView`.
----
----For `compute` passes, all of the commands in the pass act as though they run in parallel.  This means that writing to the same element of a buffer twice, or writing to it and reading from it again is not guaranteed to work properly on all GPUs.  If compute or transfers need to be sequenced, multiple passes should be used.  It is, however, completely fine to read and write to non-overlapping regions of the same buffer or texture.
----
----@param type PassType The type of pass to create.
----@param canvas {depth: {format: TextureFormat, texture: Texture}, samples: number} Render pass configuration.  Up to 4 textures can be provided in table keys 1 through 4. Ignored for non-render passes.
----@return Pass pass The new Pass.
-function lovr.graphics.getPass(type, canvas) end
+---@return table stats A table with statistics.
+function lovr.graphics.getStats() end
 
 ---Returns the window pass.  This is a builtin render `Pass` object that renders to the desktop window texture.  If the desktop window was not open when the graphics module was initialized, this function will return `nil`.
 ---
 ---#### Notes:
 ---
+---Each time this function is called, the window pass is reset, as though `Pass:setCanvas` or `Pass:reset` was called on it.
+---
 ---`lovr.conf` may be used to change the settings for the pass:  `t.graphics.antialias` enables antialiasing, and `t.graphics.stencil` enables the stencil buffer.
 ---
 ---This pass clears the window texture to the background color, which can be changed using `lovr.graphics.setBackgroundColor`.
 ---
----@return Pass pass The window pass, or `nil` if there is no window.
+---@return Pass | nil pass The window pass, or `nil` if there is no window.
 function lovr.graphics.getWindowPass() end
 
 ---Returns the type of operations the GPU supports for a texture format, if any.
@@ -1350,6 +278,28 @@ function lovr.graphics.getWindowPass() end
 ---@return boolean linear Whether the GPU supports these operations for textures with this format, when created with the `linear` flag set to `true`.
 ---@return boolean srgb Whether the GPU supports these operations for textures with this format, when created with the `linear` flag set to `false`.
 function lovr.graphics.isFormatSupported(format, ...) end
+
+---Returns whether the **super experimental** HDR mode is active.
+---
+---To enable HDR, add `t.graphics.hdr` to `lovr.conf`.  When enabled, LÖVR will try to create an HDR10 window.  If the GPU supports it, then this function will return true and the window texture will be HDR:
+---
+---- Its format will be `rgb10a2` instead of `rgba8`.
+---- The display will assume its colors are in the Rec.2020 color space, instead of sRGB.
+---- The display will assume its colors are encoded with the PQ transfer function, instead of sRGB.
+---
+---For now, it's up to you to write PQ-encoded Rec.2020 color data from your shader when rendering to the window.
+---
+---#### Notes:
+---
+---The following shader helper functions make it easier to convert between sRGB colors and HDR10:
+---
+---    vec3 pqToLinear(vec3 color);
+---    vec3 linearToPQ(vec3 color);
+---    vec3 sRGBToRec2020(vec3 color);
+---    vec3 rec2020ToSRGB(vec3 color);
+---
+---@return boolean hdr Whether HDR is enabled.
+function lovr.graphics.isHDR() end
 
 ---Returns whether timing stats are enabled.  When enabled, `Pass:getStats` will return `submitTime` and `gpuTime` durations.  Timing is enabled by default when `t.graphics.debug` is set in `lovr.conf`.  Timing has a small amount of overhead, so it should only be enabled when needed.
 ---
@@ -1373,7 +323,8 @@ function lovr.graphics.isTimingEnabled() end
 ---  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
 ---  In practice this means that you probably want to provide an `offset` for either all of the
 ---  fields or none of them.
----- `length` is the array size of the field.
+---- `length` is the array size of the field (optional, leave as `nil` for non-arrays).
+---- `stride` is the number of bytes between each item in an array (optional).
 ---
 ---As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
 ---
@@ -1448,7 +399,8 @@ function lovr.graphics.newBuffer(size) end
 ---  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
 ---  In practice this means that you probably want to provide an `offset` for either all of the
 ---  fields or none of them.
----- `length` is the array size of the field.
+---- `length` is the array size of the field (optional, leave as `nil` for non-arrays).
+---- `stride` is the number of bytes between each item in an array (optional).
 ---
 ---As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
 ---
@@ -1502,7 +454,7 @@ function lovr.graphics.newBuffer(size) end
 ---lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
 ---```
 ---
----@param blob Blob A Blob with the initial contents of the Buffer.  The size of the Blob will be used to determine the length of the Buffer.
+---@param blob Blob A Blob with the initial contents of the Buffer.
 ---@return Buffer buffer The new Buffer.
 function lovr.graphics.newBuffer(blob) end
 
@@ -1523,7 +475,8 @@ function lovr.graphics.newBuffer(blob) end
 ---  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
 ---  In practice this means that you probably want to provide an `offset` for either all of the
 ---  fields or none of them.
----- `length` is the array size of the field.
+---- `length` is the array size of the field (optional, leave as `nil` for non-arrays).
+---- `stride` is the number of bytes between each item in an array (optional).
 ---
 ---As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
 ---
@@ -1577,7 +530,7 @@ function lovr.graphics.newBuffer(blob) end
 ---lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
 ---```
 ---
----@param format {layout: DataLayout, stride: number} A list of fields in the Buffer.
+---@param format table | DataType A list of fields in the Buffer.  A `DataType` can also be used for buffers that are simple arrays.
 ---@param length? number The length of the Buffer.
 ---@return Buffer buffer The new Buffer.
 function lovr.graphics.newBuffer(format, length) end
@@ -1599,7 +552,8 @@ function lovr.graphics.newBuffer(format, length) end
 ---  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
 ---  In practice this means that you probably want to provide an `offset` for either all of the
 ---  fields or none of them.
----- `length` is the array size of the field.
+---- `length` is the array size of the field (optional, leave as `nil` for non-arrays).
+---- `stride` is the number of bytes between each item in an array (optional).
 ---
 ---As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
 ---
@@ -1653,786 +607,26 @@ function lovr.graphics.newBuffer(format, length) end
 ---lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
 ---```
 ---
----@param format {layout: DataLayout, stride: number} A list of fields in the Buffer.
----@param data table The initial data to put into the Buffer.  The length of the Buffer will be determined by the contents of the table.  The contents can be a mix of tables, numbers, and vectors, but the length calculation requires each field to consistently use one type of data.
+---@param format table | DataType A list of fields in the Buffer.  A `DataType` can also be used for buffers that are simple arrays.
+---@param data table | Blob The initial data to put into the Buffer.  The length of the Buffer will be determined by the length of the table or the size of the Blob, combined with the format information.
 ---@return Buffer buffer The new Buffer.
 function lovr.graphics.newBuffer(format, data) end
 
----Creates a Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field.  The field name is used to match table keys up to buffer
----  fields when writing table data to the Buffer, and is also used to match up buffer fields with
----  vertex attribute names declared in a `Shader`.  LÖVR has a set of <a
----  href="Shaders#vertex-attributes">default vertex attributes</a> that shaders will automatically
----  use, allowing you to create a custom mesh without having to write shader code or add custom
----  vertex attributes in a shader.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.newBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.newBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.newBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.newBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.newBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.newBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param format {layout: DataLayout, stride: number} A list of fields in the Buffer.
----@param blob Blob A Blob with the initial contents of the Buffer.  The size of the Blob will be used to determine the length of the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.newBuffer(format, blob) end
-
----Creates a Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field.  The field name is used to match table keys up to buffer
----  fields when writing table data to the Buffer, and is also used to match up buffer fields with
----  vertex attribute names declared in a `Shader`.  LÖVR has a set of <a
----  href="Shaders#vertex-attributes">default vertex attributes</a> that shaders will automatically
----  use, allowing you to create a custom mesh without having to write shader code or add custom
----  vertex attributes in a shader.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.newBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.newBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.newBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.newBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.newBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.newBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param type DataType The type of each item in the Buffer.
----@param length? number The length of the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.newBuffer(type, length) end
-
----Creates a Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field.  The field name is used to match table keys up to buffer
----  fields when writing table data to the Buffer, and is also used to match up buffer fields with
----  vertex attribute names declared in a `Shader`.  LÖVR has a set of <a
----  href="Shaders#vertex-attributes">default vertex attributes</a> that shaders will automatically
----  use, allowing you to create a custom mesh without having to write shader code or add custom
----  vertex attributes in a shader.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.newBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.newBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.newBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.newBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.newBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.newBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param type DataType The type of each item in the Buffer.
----@param data table The initial data to put into the Buffer.  The length of the Buffer will be determined by the contents of the table.  The contents can be a mix of tables, numbers, and vectors, but the length calculation requires each field to consistently use one type of data.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.newBuffer(type, data) end
-
----Creates a Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field.  The field name is used to match table keys up to buffer
----  fields when writing table data to the Buffer, and is also used to match up buffer fields with
----  vertex attribute names declared in a `Shader`.  LÖVR has a set of <a
----  href="Shaders#vertex-attributes">default vertex attributes</a> that shaders will automatically
----  use, allowing you to create a custom mesh without having to write shader code or add custom
----  vertex attributes in a shader.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.newBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.newBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.newBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.newBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.newBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.newBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param type DataType The type of each item in the Buffer.
----@param blob Blob A Blob with the initial contents of the Buffer.  The size of the Blob will be used to determine the length of the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.newBuffer(type, blob) end
-
----Creates a Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field.  The field name is used to match table keys up to buffer
----  fields when writing table data to the Buffer, and is also used to match up buffer fields with
----  vertex attribute names declared in a `Shader`.  LÖVR has a set of <a
----  href="Shaders#vertex-attributes">default vertex attributes</a> that shaders will automatically
----  use, allowing you to create a custom mesh without having to write shader code or add custom
----  vertex attributes in a shader.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.newBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.newBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.newBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.newBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.newBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.newBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param length? number The length of the Buffer.
----@param type DataType The type of each item in the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.newBuffer(length, type) end
-
----Creates a Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field.  The field name is used to match table keys up to buffer
----  fields when writing table data to the Buffer, and is also used to match up buffer fields with
----  vertex attribute names declared in a `Shader`.  LÖVR has a set of <a
----  href="Shaders#vertex-attributes">default vertex attributes</a> that shaders will automatically
----  use, allowing you to create a custom mesh without having to write shader code or add custom
----  vertex attributes in a shader.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.newBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.newBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.newBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.newBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.newBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.newBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param data table The initial data to put into the Buffer.  The length of the Buffer will be determined by the contents of the table.  The contents can be a mix of tables, numbers, and vectors, but the length calculation requires each field to consistently use one type of data.
----@param type DataType The type of each item in the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.newBuffer(data, type) end
-
----Creates a Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field.  The field name is used to match table keys up to buffer
----  fields when writing table data to the Buffer, and is also used to match up buffer fields with
----  vertex attribute names declared in a `Shader`.  LÖVR has a set of <a
----  href="Shaders#vertex-attributes">default vertex attributes</a> that shaders will automatically
----  use, allowing you to create a custom mesh without having to write shader code or add custom
----  vertex attributes in a shader.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.newBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.newBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.newBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.newBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.newBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.newBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param length? number The length of the Buffer.
----@param format {layout: DataLayout, stride: number} A list of fields in the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.newBuffer(length, format) end
-
----Creates a Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field.  The field name is used to match table keys up to buffer
----  fields when writing table data to the Buffer, and is also used to match up buffer fields with
----  vertex attribute names declared in a `Shader`.  LÖVR has a set of <a
----  href="Shaders#vertex-attributes">default vertex attributes</a> that shaders will automatically
----  use, allowing you to create a custom mesh without having to write shader code or add custom
----  vertex attributes in a shader.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.newBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.newBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.newBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.newBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.newBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.newBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param data table The initial data to put into the Buffer.  The length of the Buffer will be determined by the contents of the table.  The contents can be a mix of tables, numbers, and vectors, but the length calculation requires each field to consistently use one type of data.
----@param format {layout: DataLayout, stride: number} A list of fields in the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.newBuffer(data, format) end
-
----Creates a Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field.  The field name is used to match table keys up to buffer
----  fields when writing table data to the Buffer, and is also used to match up buffer fields with
----  vertex attribute names declared in a `Shader`.  LÖVR has a set of <a
----  href="Shaders#vertex-attributes">default vertex attributes</a> that shaders will automatically
----  use, allowing you to create a custom mesh without having to write shader code or add custom
----  vertex attributes in a shader.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.newBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.newBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.newBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.newBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.newBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.newBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param blob Blob A Blob with the initial contents of the Buffer.  The size of the Blob will be used to determine the length of the Buffer.
----@param type DataType The type of each item in the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.newBuffer(blob, type) end
-
----Creates a Buffer.
----
----#### Notes:
----
----The format table can contain a list of `DataType`s or a list of tables to provide extra information about each field.  Each inner table has the following keys:
----
----- `type` is the `DataType` of the field and is required.
----- `name` is the name of the field.  The field name is used to match table keys up to buffer
----  fields when writing table data to the Buffer, and is also used to match up buffer fields with
----  vertex attribute names declared in a `Shader`.  LÖVR has a set of <a
----  href="Shaders#vertex-attributes">default vertex attributes</a> that shaders will automatically
----  use, allowing you to create a custom mesh without having to write shader code or add custom
----  vertex attributes in a shader.
----- `offset` is the byte offset of the field.  Any fields with a `nil` offset will be placed next
----  to each other sequentially in memory, subject to any padding required by the Buffer's layout.
----  In practice this means that you probably want to provide an `offset` for either all of the
----  fields or none of them.
----- `length` is the array size of the field.
----
----As a shorthand, the name, type, and optionally the length of a field can be provided as a list instead of using keys.
----
----If no table or Blob is used to define the initial Buffer contents, its data will be undefined.
----
----#### Example:
----
----Examples of different buffer formats.
----
----```lua
------ 2 matrices
----lovr.graphics.newBuffer('mat4', 2)
----
------ 3 integers, with initial data
----lovr.graphics.newBuffer('int', { 1, 2, 3 })
----
------ a simple mesh:
----lovr.graphics.newBuffer({
----  { name = 'VertexPosition', type = 'vec3' },
----  { name = 'VertexColor', type = 'color' }
----}, 4)
----
------ a uniform buffer with vec3's, using the std140 packing
----lovr.graphics.newBuffer({ 'vec3', layout = 'std140' }, data)
----
------ a uniform buffer with key-value fields
----lovr.graphics.newBuffer({
----  { 'AmbientColor', 'vec3' },
----  { 'LightPosition', 'vec3' },
----  { 'LightType', 'u32' },
----  { 'LightColor', 'vec4' },
----  layout = 'std140'
----})
----
------ a buffer with nested structure and array types
----lovr.graphics.newBuffer({
----  { 'globals', {
----    { 'ObjectCount', 'int' },
----    { 'WorldSize', 'vec2' },
----    { 'Scale', 'float' }
----  }},
----  { 'materials', {
----    { 'Color', 'vec4' },
----    { 'Glow', 'vec3' },
----    { 'Roughness', 'float' }
----  }, length = 32 },
----  layout = 'std430'
----})
----
------ a buffer using a variable from a shader:
----lovr.graphics.newBuffer(shader:getBufferFormat('transforms'))
----```
----
----@param blob Blob A Blob with the initial contents of the Buffer.  The size of the Blob will be used to determine the length of the Buffer.
----@param format {layout: DataLayout, stride: number} A list of fields in the Buffer.
----@return Buffer buffer The new Buffer.
-function lovr.graphics.newBuffer(blob, format) end
-
 ---Creates a new Font.
 ---
----@param filename string A path to a TTF or BMFont file.
+---@param file string | Blob A filename or Blob containing a TTF or BMFont file.
 ---@param size? number The size of the Font in pixels (TTF only).  Larger sizes are slower to initialize and use more memory, but have better quality.
 ---@param spread? number For signed distance field fonts (currently all fonts), the width of the SDF, in pixels.  The greater the distance the font is viewed from, the larger this value needs to be for the font to remain properly antialiased.  Increasing this will have a performance penalty similar to increasing the size of the font.
 ---@return Font font The new Font.
-function lovr.graphics.newFont(filename, size, spread) end
+function lovr.graphics.newFont(file, size, spread) end
 
 ---Creates a new Font.
 ---
----@param blob Blob A Blob containing TTF or BMFont file data.
----@param size? number The size of the Font in pixels (TTF only).  Larger sizes are slower to initialize and use more memory, but have better quality.
+---@param file string | Blob A filename or Blob containing a TTF or BMFont file.
+---@param atlas? Image An Image to use for the BMFont atlas, instead of the one in the BMFont file.
 ---@param spread? number For signed distance field fonts (currently all fonts), the width of the SDF, in pixels.  The greater the distance the font is viewed from, the larger this value needs to be for the font to remain properly antialiased.  Increasing this will have a performance penalty similar to increasing the size of the font.
 ---@return Font font The new Font.
-function lovr.graphics.newFont(blob, size, spread) end
+function lovr.graphics.newFont(file, atlas, spread) end
 
 ---Creates a new Font.
 ---
@@ -2454,7 +648,7 @@ function lovr.graphics.newFont(rasterizer, spread) end
 ---
 ---The non-texture material properties can be accessed in shaders using `Material.<property>`, where the property is the same as the Lua table key.  The textures use capitalized names in shader code, e.g. `ColorTexture`.
 ---
----@param properties {color: Vec4, glow: Vec4, uvShift: Vec2, uvScale: Vec2, metalness: number, roughness: number, clearcoat: number, clearcoatRoughness: number, occlusionStrength: number, normalScale: number, alphaCutoff: number, texture: Texture, glowTexture: Texture, metalnessTexture: Texture, roughnessTexture: Texture, clearcoatTexture: Texture, occlusionTexture: Texture, normalTexture: Texture} Material properties.
+---@param properties {color: {number}, glow: {number}, uvShift: {number}, uvScale: {number}, metalness: number, roughness: number, clearcoat: number, clearcoatRoughness: number, occlusionStrength: number, normalScale: number, alphaCutoff: number, texture: Texture, glowTexture: Texture, metalnessTexture: Texture, roughnessTexture: Texture, clearcoatTexture: Texture, occlusionTexture: Texture, normalTexture: Texture} Material properties.
 ---@return Material material The new material.
 function lovr.graphics.newMaterial(properties) end
 
@@ -2490,9 +684,9 @@ function lovr.graphics.newMaterial(properties) end
 ---```
 ---
 ---@param count number The number of vertices in the Mesh.
----@param storage? MeshStorage The storage mode of the Mesh.
+---@param options {storage: MeshStorage, raytracer: {dynamic: boolean, fasttrace: boolean, fastbuild: boolean, compress: boolean}} Optional options.
 ---@return Mesh mesh The new Mesh.
-function lovr.graphics.newMesh(count, storage) end
+function lovr.graphics.newMesh(count, options) end
 
 ---Creates a Mesh.  The capacity of the Mesh must be provided upfront, using either a vertex count or the vertex data itself.  A custom vertex format can be given to specify the set of attributes in each vertex, which get sent to the vertex shader.  If the format isn't given, the default vertex format will be used:
 ---
@@ -2526,9 +720,9 @@ function lovr.graphics.newMesh(count, storage) end
 ---```
 ---
 ---@param vertices table A table of vertices, formatted according to the vertex format.  The length of the table will be used to set the vertex count of the Mesh.
----@param storage? MeshStorage The storage mode of the Mesh.
+---@param options {storage: MeshStorage, raytracer: {dynamic: boolean, fasttrace: boolean, fastbuild: boolean, compress: boolean}} Optional options.
 ---@return Mesh mesh The new Mesh.
-function lovr.graphics.newMesh(vertices, storage) end
+function lovr.graphics.newMesh(vertices, options) end
 
 ---Creates a Mesh.  The capacity of the Mesh must be provided upfront, using either a vertex count or the vertex data itself.  A custom vertex format can be given to specify the set of attributes in each vertex, which get sent to the vertex shader.  If the format isn't given, the default vertex format will be used:
 ---
@@ -2562,9 +756,9 @@ function lovr.graphics.newMesh(vertices, storage) end
 ---```
 ---
 ---@param blob Blob A Blob containing vertex data, formatted according to the vertex format.  The size of the Blob will be used to set the vertex count of the Mesh, and must be a multiple of the vertex size.
----@param storage? MeshStorage The storage mode of the Mesh.
+---@param options {storage: MeshStorage, raytracer: {dynamic: boolean, fasttrace: boolean, fastbuild: boolean, compress: boolean}} Optional options.
 ---@return Mesh mesh The new Mesh.
-function lovr.graphics.newMesh(blob, storage) end
+function lovr.graphics.newMesh(blob, options) end
 
 ---Creates a Mesh.  The capacity of the Mesh must be provided upfront, using either a vertex count or the vertex data itself.  A custom vertex format can be given to specify the set of attributes in each vertex, which get sent to the vertex shader.  If the format isn't given, the default vertex format will be used:
 ---
@@ -2599,9 +793,9 @@ function lovr.graphics.newMesh(blob, storage) end
 ---
 ---@param format table A table of attributes describing the format of each vertex.  Each attribute is a table that must have `name` and `type` keys, where the name is a string and the type is a `DataType`. Attributes can also have an `offset` key, which is a byte offset relative to the start of the vertex.  As a shorthand, the name and type can be given as a pair without keys. Additionally, the format can have a `stride` key to set the number of bytes between subsequent vertices.
 ---@param count number The number of vertices in the Mesh.
----@param storage? MeshStorage The storage mode of the Mesh.
+---@param options {storage: MeshStorage, raytracer: {dynamic: boolean, fasttrace: boolean, fastbuild: boolean, compress: boolean}} Optional options.
 ---@return Mesh mesh The new Mesh.
-function lovr.graphics.newMesh(format, count, storage) end
+function lovr.graphics.newMesh(format, count, options) end
 
 ---Creates a Mesh.  The capacity of the Mesh must be provided upfront, using either a vertex count or the vertex data itself.  A custom vertex format can be given to specify the set of attributes in each vertex, which get sent to the vertex shader.  If the format isn't given, the default vertex format will be used:
 ---
@@ -2636,9 +830,9 @@ function lovr.graphics.newMesh(format, count, storage) end
 ---
 ---@param format table A table of attributes describing the format of each vertex.  Each attribute is a table that must have `name` and `type` keys, where the name is a string and the type is a `DataType`. Attributes can also have an `offset` key, which is a byte offset relative to the start of the vertex.  As a shorthand, the name and type can be given as a pair without keys. Additionally, the format can have a `stride` key to set the number of bytes between subsequent vertices.
 ---@param vertices table A table of vertices, formatted according to the vertex format.  The length of the table will be used to set the vertex count of the Mesh.
----@param storage? MeshStorage The storage mode of the Mesh.
+---@param options {storage: MeshStorage, raytracer: {dynamic: boolean, fasttrace: boolean, fastbuild: boolean, compress: boolean}} Optional options.
 ---@return Mesh mesh The new Mesh.
-function lovr.graphics.newMesh(format, vertices, storage) end
+function lovr.graphics.newMesh(format, vertices, options) end
 
 ---Creates a Mesh.  The capacity of the Mesh must be provided upfront, using either a vertex count or the vertex data itself.  A custom vertex format can be given to specify the set of attributes in each vertex, which get sent to the vertex shader.  If the format isn't given, the default vertex format will be used:
 ---
@@ -2673,9 +867,9 @@ function lovr.graphics.newMesh(format, vertices, storage) end
 ---
 ---@param format table A table of attributes describing the format of each vertex.  Each attribute is a table that must have `name` and `type` keys, where the name is a string and the type is a `DataType`. Attributes can also have an `offset` key, which is a byte offset relative to the start of the vertex.  As a shorthand, the name and type can be given as a pair without keys. Additionally, the format can have a `stride` key to set the number of bytes between subsequent vertices.
 ---@param blob Blob A Blob containing vertex data, formatted according to the vertex format.  The size of the Blob will be used to set the vertex count of the Mesh, and must be a multiple of the vertex size.
----@param storage? MeshStorage The storage mode of the Mesh.
+---@param options {storage: MeshStorage, raytracer: {dynamic: boolean, fasttrace: boolean, fastbuild: boolean, compress: boolean}} Optional options.
 ---@return Mesh mesh The new Mesh.
-function lovr.graphics.newMesh(format, blob, storage) end
+function lovr.graphics.newMesh(format, blob, options) end
 
 ---Creates a Mesh.  The capacity of the Mesh must be provided upfront, using either a vertex count or the vertex data itself.  A custom vertex format can be given to specify the set of attributes in each vertex, which get sent to the vertex shader.  If the format isn't given, the default vertex format will be used:
 ---
@@ -2730,33 +924,10 @@ function lovr.graphics.newMesh(buffer) end
 ---
 ---Loading a model file will fail if the asset references textures or other files using absolute paths.  Relative paths should be used instead, and will be relative to the model file within the virtual filesystem.
 ---
----@param filename string The path to model file.
----@param options? {mipmaps: boolean, materials: boolean} Model options.
+---@param file string | Blob A filename or Blob containing 3D model data to import.
+---@param options {mipmaps: boolean, materials: boolean, raytracer: {dynamic: boolean, fasttrace: boolean, fastbuild: boolean, compress: boolean}} An optional table of Model options.
 ---@return Model model The new Model.
-function lovr.graphics.newModel(filename, options) end
-
----Loads a 3D model from a file.  Currently, OBJ, glTF, and binary STL files are supported.
----
----#### Notes:
----
----Currently, the following features are not supported by the model importer:
----
----- glTF: Only the default scene is loaded.
----- glTF: Currently, each skin in a Model can have up to 256 joints.
----- glTF: Meshes can't appear multiple times in the node hierarchy with different skins, they need
----  to use 1 skin consistently.
----- glTF: `KHR_texture_transform` is supported, but all textures in a material will use the same
----  transform.
----- STL: ASCII STL files are not supported.
----
----Diffuse and emissive textures will be loaded using sRGB encoding, all other textures will be loaded as linear.
----
----Loading a model file will fail if the asset references textures or other files using absolute paths.  Relative paths should be used instead, and will be relative to the model file within the virtual filesystem.
----
----@param blob Blob A Blob containing 3D model data.
----@param options? {mipmaps: boolean, materials: boolean} Model options.
----@return Model model The new Model.
-function lovr.graphics.newModel(blob, options) end
+function lovr.graphics.newModel(file, options) end
 
 ---Loads a 3D model from a file.  Currently, OBJ, glTF, and binary STL files are supported.
 ---
@@ -2777,7 +948,7 @@ function lovr.graphics.newModel(blob, options) end
 ---Loading a model file will fail if the asset references textures or other files using absolute paths.  Relative paths should be used instead, and will be relative to the model file within the virtual filesystem.
 ---
 ---@param modelData ModelData An existing ModelData object to use for the Model.
----@param options? {mipmaps: boolean, materials: boolean} Model options.
+---@param options {mipmaps: boolean, materials: boolean, raytracer: {dynamic: boolean, fasttrace: boolean, fastbuild: boolean, compress: boolean}} An optional table of Model options.
 ---@return Model model The new Model.
 function lovr.graphics.newModel(modelData, options) end
 
@@ -2846,6 +1017,13 @@ function lovr.graphics.newPass(canvas) end
 ---@return Pass pass The new Pass.
 function lovr.graphics.newPass() end
 
+---Creates a new Raytracer, which holds objects for raytracing in shaders.  The capacity of the raytracer, the number of objects it can hold, must be declared upfront and can not be changed afterwards.
+---
+---@param capacity number The capacity of the Raytracer.
+---@param options? {dynamic: boolean, fasttrace: boolean, fastbuild: boolean, compress: boolean} Optional options.
+---@return Raytracer raytracer The new Raytracer.
+function lovr.graphics.newRaytracer(capacity, options) end
+
 ---Creates a new Sampler.  Samplers are immutable, meaning their parameters can not be changed after the sampler is created.  Instead, a new sampler should be created with the updated properties.
 ---
 ---@param parameters {filter: {[1]: FilterMode, [2]: FilterMode, [3]: FilterMode}, wrap: {[1]: WrapMode, [2]: WrapMode, [3]: WrapMode}, compare: CompareMode, anisotropy: number, mipmaprange: table} Parameters for the sampler.
@@ -2858,9 +1036,9 @@ function lovr.graphics.newSampler(parameters) end
 ---
 ---By default, the provided shader code is expected to implement a `vec4 lovrmain() { ... }` function that is called for each vertex or fragment.  If the `raw` option is set to `true`, the code is treated as a raw shader and the `lovrmain` function is not required. In this case, the shader code is expected to implement its own `main` function.
 ---
----@param vertex string A string, path to a file, or Blob containing GLSL or SPIR-V code for the vertex stage.  Can also be a `DefaultShader` to use that shader's vertex code.
----@param fragment string A string, path to a file, or Blob containing GLSL or SPIR-V code for the fragment stage. Can also be a `DefaultShader` to use that shader's fragment code.
----@param options {flags: table, label: string, raw: boolean} Shader options.
+---@param vertex string | DefaultShader | Blob A string, path to a file, or Blob containing GLSL or SPIR-V code for the vertex stage.  Can also be a `DefaultShader` to use that shader's vertex code.
+---@param fragment string | DefaultShader | Blob A string, path to a file, or Blob containing GLSL or SPIR-V code for the fragment stage. Can also be a `DefaultShader` to use that shader's fragment code.
+---@param options {flags: table, label: string, raw: boolean} An optional table of Shader options.
 ---@return Shader shader The new shader.
 function lovr.graphics.newShader(vertex, fragment, options) end
 
@@ -2870,8 +1048,8 @@ function lovr.graphics.newShader(vertex, fragment, options) end
 ---
 ---By default, the provided shader code is expected to implement a `vec4 lovrmain() { ... }` function that is called for each vertex or fragment.  If the `raw` option is set to `true`, the code is treated as a raw shader and the `lovrmain` function is not required. In this case, the shader code is expected to implement its own `main` function.
 ---
----@param compute string A string, path to a file, or Blob containing GLSL or SPIR-V code for the compute stage.
----@param options {flags: table, label: string, raw: boolean} Shader options.
+---@param compute string | Blob A string, path to a file, or Blob containing GLSL or SPIR-V code for the compute stage.
+---@param options {flags: table, label: string, raw: boolean} An optional table of Shader options.
 ---@return Shader shader The new shader.
 function lovr.graphics.newShader(compute, options) end
 
@@ -2881,10 +1059,10 @@ function lovr.graphics.newShader(compute, options) end
 ---
 ---By default, the provided shader code is expected to implement a `vec4 lovrmain() { ... }` function that is called for each vertex or fragment.  If the `raw` option is set to `true`, the code is treated as a raw shader and the `lovrmain` function is not required. In this case, the shader code is expected to implement its own `main` function.
 ---
----@param default DefaultShader The default shader to use.
----@param options {flags: table, label: string, raw: boolean} Shader options.
+---@param defaultshader DefaultShader One of the default shaders to use.
+---@param options {flags: table, label: string, raw: boolean} An optional table of Shader options.
 ---@return Shader shader The new shader.
-function lovr.graphics.newShader(default, options) end
+function lovr.graphics.newShader(defaultshader, options) end
 
 ---Creates a new Texture.  Image filenames or `Image` objects can be used to provide the initial pixel data and the dimensions, format, and type.  Alternatively, dimensions can be provided, which will create an empty texture.
 ---
@@ -2914,10 +1092,10 @@ function lovr.graphics.newShader(default, options) end
 ---
 ---If image data is provided, mipmaps will be generated for any missing mipmap levels.
 ---
----@param filename string The filename of an image to load.
----@param options {type: TextureType, format: TextureFormat, linear: boolean, samples: number, mipmaps: any, usage: table, label: string} Texture options.
+---@param file string | Blob A filename or Blob containing an image file to load.
+---@param options {type: TextureType, format: TextureFormat, linear: boolean, samples: number, mipmaps: boolean | number, usage: {TextureUsage}, label: string} Texture options.
 ---@return Texture texture The new Texture.
-function lovr.graphics.newTexture(filename, options) end
+function lovr.graphics.newTexture(file, options) end
 
 ---Creates a new Texture.  Image filenames or `Image` objects can be used to provide the initial pixel data and the dimensions, format, and type.  Alternatively, dimensions can be provided, which will create an empty texture.
 ---
@@ -2949,7 +1127,7 @@ function lovr.graphics.newTexture(filename, options) end
 ---
 ---@param width number The width of the Texture, in pixels.
 ---@param height number The height of the Texture, in pixels.
----@param options {type: TextureType, format: TextureFormat, linear: boolean, samples: number, mipmaps: any, usage: table, label: string} Texture options.
+---@param options {type: TextureType, format: TextureFormat, linear: boolean, samples: number, mipmaps: boolean | number, usage: {TextureUsage}, label: string} Texture options.
 ---@return Texture texture The new Texture.
 function lovr.graphics.newTexture(width, height, options) end
 
@@ -2984,7 +1162,7 @@ function lovr.graphics.newTexture(width, height, options) end
 ---@param width number The width of the Texture, in pixels.
 ---@param height number The height of the Texture, in pixels.
 ---@param layers number The number of layers in the Texture.
----@param options {type: TextureType, format: TextureFormat, linear: boolean, samples: number, mipmaps: any, usage: table, label: string} Texture options.
+---@param options {type: TextureType, format: TextureFormat, linear: boolean, samples: number, mipmaps: boolean | number, usage: {TextureUsage}, label: string} Texture options.
 ---@return Texture texture The new Texture.
 function lovr.graphics.newTexture(width, height, layers, options) end
 
@@ -3017,7 +1195,7 @@ function lovr.graphics.newTexture(width, height, layers, options) end
 ---If image data is provided, mipmaps will be generated for any missing mipmap levels.
 ---
 ---@param image string An Image object holding pixel data to load into the Texture.
----@param options {type: TextureType, format: TextureFormat, linear: boolean, samples: number, mipmaps: any, usage: table, label: string} Texture options.
+---@param options {type: TextureType, format: TextureFormat, linear: boolean, samples: number, mipmaps: boolean | number, usage: {TextureUsage}, label: string} Texture options.
 ---@return Texture texture The new Texture.
 function lovr.graphics.newTexture(image, options) end
 
@@ -3049,43 +1227,10 @@ function lovr.graphics.newTexture(image, options) end
 ---
 ---If image data is provided, mipmaps will be generated for any missing mipmap levels.
 ---
----@param images table A table of filenames or Images to load into the Texture.
----@param options {type: TextureType, format: TextureFormat, linear: boolean, samples: number, mipmaps: any, usage: table, label: string} Texture options.
+---@param images {string | Blob | Image} A table of filenames or Images to load into the Texture.
+---@param options {type: TextureType, format: TextureFormat, linear: boolean, samples: number, mipmaps: boolean | number, usage: {TextureUsage}, label: string} Texture options.
 ---@return Texture texture The new Texture.
 function lovr.graphics.newTexture(images, options) end
-
----Creates a new Texture.  Image filenames or `Image` objects can be used to provide the initial pixel data and the dimensions, format, and type.  Alternatively, dimensions can be provided, which will create an empty texture.
----
----#### Notes:
----
----If no `type` is provided in the options table, LÖVR will guess the `TextureType` of the Texture based on the number of layers:
----
----- If there's only 1 layer, the type will be `2d`.
----- If there are 6 images provided, the type will be `cube`.
----- Otherwise, the type will be `array`.
----
----Note that an Image can contain multiple layers and mipmaps.  When a single Image is provided, its layer count will be used as the Texture's layer count.
----
----If multiple Images are used to initialize the Texture, they must all have a single layer, and their dimensions, format, and mipmap counts must match.
----
----When providing cubemap images in a table, they can be in one of the following forms:
----
----    { 'px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png' }
----    { right = 'px.png', left = 'nx.png', top = 'py.png', bottom = 'ny.png', back = 'pz.png', front = 'nz.png' }
----    { px = 'px.png', nx = 'nx.png', py = 'py.png', ny = 'ny.png', pz = 'pz.png', nz = 'nz.png' }
----
----(Where 'p' stands for positive and 'n' stands for negative).
----
----If no `usage` is provided in the options table, LÖVR will guess the `TextureUsage` of the Texture.  The `sample` usage is always included, but if the texture was created without any images then the texture will have the `render` usage as well.
----
----The supported image formats are png, jpg, hdr, dds, ktx1, ktx2, and astc.
----
----If image data is provided, mipmaps will be generated for any missing mipmap levels.
----
----@param blob Blob A Blob object holding pixel data to load into the Texture.
----@param options {type: TextureType, format: TextureFormat, linear: boolean, samples: number, mipmaps: any, usage: table, label: string} Texture options.
----@return Texture texture The new Texture.
-function lovr.graphics.newTexture(blob, options) end
 
 ---Creates a new Texture view.  A texture view does not store any pixels on its own, but instead uses the pixel data of a "parent" Texture object.  The width, height, format, sample count, and usage flags all match the parent.  The view may have a different `TextureType`, and it may reference a subset of the parent texture's layers and mipmap levels.
 ---
@@ -3149,7 +1294,7 @@ function lovr.graphics.setBackgroundColor(hex, a) end
 ---
 ---Using the background color to clear the display is expected to be more efficient than manually clearing after a render pass begins, especially on mobile GPUs.
 ---
----@param table table A table containing 3 or 4 color components.
+---@param table {number} A table containing 3 or 4 color components.
 function lovr.graphics.setBackgroundColor(table) end
 
 ---Enables or disables timing stats.  When enabled, `Pass:getStats` will return `submitTime` and `gpuTime` durations.  Timing is enabled by default when `t.graphics.debug` is set in `lovr.conf`.  Timing has a small amount of overhead, so it should only be enabled when needed.
@@ -3173,7 +1318,7 @@ function lovr.graphics.setTimingEnabled(enable) end
 ---
 ---It is valid to submit zero passes.  This will send an empty batch of work to the GPU.
 ---
----@param ... Pass The pass objects to submit.  Falsy values will be skipped.
+---@param ... Pass | boolean | nil The pass objects to submit.  Falsy values will be skipped.
 ---@return boolean true Always returns true, for convenience when returning from `lovr.draw`.
 function lovr.graphics.submit(...) end
 
@@ -3193,7 +1338,7 @@ function lovr.graphics.submit(...) end
 ---
 ---It is valid to submit zero passes.  This will send an empty batch of work to the GPU.
 ---
----@param t table A table of passes to submit.  Falsy values will be skipped.
+---@param t {Pass | boolean} A table of passes to submit.  Falsy values will be skipped.
 ---@return boolean true Always returns true, for convenience when returning from `lovr.draw`.
 function lovr.graphics.submit(t) end
 
@@ -3236,9 +1381,11 @@ local Buffer = {}
 ---@param value? number The value to clear to.  This will be interpreted as a 32 bit number, which will be repeated across the clear range.
 function Buffer:clear(offset, extent, value) end
 
----Downloads the Buffer's data from VRAM and returns it as a table.  This function is very very slow because it stalls the CPU until the data is finished downloading, so it should only be used for debugging or non-interactive scripts.  `Buffer:newReadback` is an alternative that returns a `Readback` object, which will not block the CPU.
+---Downloads the Buffer's data from VRAM and returns it as a table.
 ---
 ---#### Notes:
+---
+---This function is very slow, because it stalls the CPU until the data has finished downloading from the GPU.  The stall can be avoided be calling this function in a task, which will put the task to sleep until the data is ready.  See `lovr.task` for more details.
 ---
 ---The length of the table will equal the number of items read.  Here are some examples of how the table is formatted:
 ---
@@ -3312,24 +1459,6 @@ function Buffer:getFormat() end
 ---@return number length The length of the Buffer.
 function Buffer:getLength() end
 
----Returns a pointer to GPU memory and schedules a copy from this pointer to the buffer's data. The data in the pointer will replace the data in the buffer.  This is intended for use with the LuaJIT FFI or for passing to C libraries.
----
----#### Notes:
----
----The pointer remains valid until the next call to `lovr.graphics.submit`, during which the data in the pointer will be uploaded to the buffer.
----
----The initial contents of the pointer are undefined.
----
----Special care should be taken when writing data:
----
----- Reading data from the pointer will be very slow on some systems, and should be avoided.
----- It is better to write data to the pointer sequentially.  Random access may be slower.
----
----@param offset? number A byte offset in the buffer to write to.
----@param extent? number The number of bytes to replace.  If nil, writes to the rest of the buffer.
----@return lightuserdata pointer A pointer to the Buffer's memory.
-function Buffer:getPointer(offset, extent) end
-
 ---Returns the size of the Buffer in VRAM, in bytes.  This is the same as `length * stride`.
 ---
 ---The size of the Buffer can't change after it's created.
@@ -3348,28 +1477,16 @@ function Buffer:getSize() end
 ---@return number stride The stride of the Buffer, in bytes.
 function Buffer:getStride() end
 
----Returns whether the Buffer is temporary.
----
----@return boolean temporary Whether the Buffer is temporary.
-function Buffer:isTemporary() end
-
----Returns a pointer to GPU memory and schedules a copy from this pointer to the buffer's data. The data in the pointer will replace the data in the buffer.  This is intended for use with the LuaJIT FFI or for passing to C libraries.
+---Downloads the Buffer's data from VRAM and returns it as a `Blob`.  This is similar to `Buffer:getData`, but returns a `Blob` instead of a table.
 ---
 ---#### Notes:
 ---
----The pointer remains valid until the next call to `lovr.graphics.submit`, during which the data in the pointer will be uploaded to the buffer.
+---This function is very slow, because it stalls the CPU until the data has finished downloading from the GPU.  The stall can be avoided be calling this function in a task, which will put the task to sleep until the data is ready.  See `lovr.task` for more details.
 ---
----The initial contents of the pointer are undefined.
----
----Special care should be taken when writing data:
----
----- Reading data from the pointer will be very slow on some systems, and should be avoided.
----- It is better to write data to the pointer sequentially.  Random access may be slower.
----
----@param offset? number A byte offset in the buffer to write to.
----@param extent? number The number of bytes to replace.  If nil, writes to the rest of the buffer.
----@return lightuserdata pointer A pointer to the Buffer's memory.
-function Buffer:mapData(offset, extent) end
+---@param offset? number An offset in the Buffer to read from, in bytes.
+---@param extent? number The number of bytes to read.  If nil, reads the remainder of the buffer.
+---@return Blob blob A new Blob with the Buffer's data.
+function Buffer:newBlob(offset, extent) end
 
 ---Creates and returns a new `Readback` that will download the data in the Buffer from VRAM. Once the readback is complete, `Readback:getData` returns the data as a table, or `Readback:getBlob` returns the data as a `Blob`.
 ---
@@ -3841,49 +1958,40 @@ function Font:getHeight() end
 
 ---Returns the kerning between 2 glyphs.  Kerning is a slight horizontal adjustment between 2 glyphs to improve the visual appearance.  It will often be negative.  The units depend on the font's pixel density.  With the default density, the units correspond to meters.
 ---
----@param first string The first character.
----@param second string The second character.
+---@param first string | number The first character or codepoint.
+---@param second string | number The second character or codepoint.
 ---@return number keming The kerning between the two glyphs.
 function Font:getKerning(first, second) end
-
----Returns the kerning between 2 glyphs.  Kerning is a slight horizontal adjustment between 2 glyphs to improve the visual appearance.  It will often be negative.  The units depend on the font's pixel density.  With the default density, the units correspond to meters.
----
----@param firstCodepoint number The first codepoint.
----@param second string The second character.
----@return number keming The kerning between the two glyphs.
-function Font:getKerning(firstCodepoint, second) end
-
----Returns the kerning between 2 glyphs.  Kerning is a slight horizontal adjustment between 2 glyphs to improve the visual appearance.  It will often be negative.  The units depend on the font's pixel density.  With the default density, the units correspond to meters.
----
----@param first string The first character.
----@param secondCodepoint number The second codepoint.
----@return number keming The kerning between the two glyphs.
-function Font:getKerning(first, secondCodepoint) end
-
----Returns the kerning between 2 glyphs.  Kerning is a slight horizontal adjustment between 2 glyphs to improve the visual appearance.  It will often be negative.  The units depend on the font's pixel density.  With the default density, the units correspond to meters.
----
----@param firstCodepoint number The first codepoint.
----@param secondCodepoint number The second codepoint.
----@return number keming The kerning between the two glyphs.
-function Font:getKerning(firstCodepoint, secondCodepoint) end
 
 ---Returns the line spacing of the Font.  When spacing out lines, the height of the font is multiplied the line spacing to get the final spacing value.  The default is 1.0.
 ---
 ---@return number spacing The line spacing of the font.
 function Font:getLineSpacing() end
 
----Returns a table of wrapped lines for a piece of text, given a line length limit.  Newlines are handled correctly.  The wrap limit units depend on the pixel density of the font.  With the default pixel density, the units correspond to meters when the font is drawn at 1.0 scale.
+---Returns a table of wrapped lines for a piece of text, given a line length limit.
+---
+---By default the units for `limit` are in meters.  If text is being drawn with scale applied, make sure the scale is also applied to the `limit`.
+---
+---#### Notes:
+---
+---The font's pixel density is incorporated into the limit.  So if the font's pixel density is changed to 1 (changing the font's units to pixels), the `limit` will be in pixels as well.
 ---
 ---@param string string The text to wrap.
 ---@param wrap number The line length to wrap at.
----@return table lines A table strings, one for each wrapped line (without any color information).
+---@return {string} lines A table of strings, one for each wrapped line.
 function Font:getLines(string, wrap) end
 
----Returns a table of wrapped lines for a piece of text, given a line length limit.  Newlines are handled correctly.  The wrap limit units depend on the pixel density of the font.  With the default pixel density, the units correspond to meters when the font is drawn at 1.0 scale.
+---Returns a table of wrapped lines for a piece of text, given a line length limit.
 ---
----@param strings table A table of colored strings, each given as a `{ color, string }` pair.  The color can be a `Vec3`, `Vec4`, table, or hexcode.
+---By default the units for `limit` are in meters.  If text is being drawn with scale applied, make sure the scale is also applied to the `limit`.
+---
+---#### Notes:
+---
+---The font's pixel density is incorporated into the limit.  So if the font's pixel density is changed to 1 (changing the font's units to pixels), the `limit` will be in pixels as well.
+---
+---@param strings table A table of multicolor strings to wrap.  The colors aren't used for anything, this just exists to match `Pass:text`.
 ---@param wrap number The line length to wrap at.
----@return table lines A table strings, one for each wrapped line (without any color information).
+---@return {string} lines A table of strings, one for each wrapped line.
 function Font:getLines(strings, wrap) end
 
 ---Returns the pixel density of the font.  The density is a "pixels per world unit" factor that controls how the pixels in the font's texture are mapped to units in the coordinate space.
@@ -3908,13 +2016,16 @@ function Font:getRasterizer() end
 ---
 ---These could be placed in a vertex buffer using the following buffer format:
 ---
----    { 'vec2:VertexPosition', 'vec2:VertexUV' }
+---    {
+---      { 'VertexPosition', 'vec2' },
+---      { 'VertexUV', 'vec2' }
+---    }
 ---
 ---@param string string The text to render.
 ---@param wrap? number The maximum line length.  The units depend on the pixel density of the font, but are in meters by default.
 ---@param halign HorizontalAlign The horizontal align.
 ---@param valign VerticalAlign The vertical align.
----@return table vertices The table of vertices.  See below for the format of each vertex.
+---@return {number} vertices The table of vertices.  See below for the format of each vertex.
 ---@return Material material A Material to use when rendering the vertices.
 function Font:getVertices(string, wrap, halign, valign) end
 
@@ -3928,13 +2039,16 @@ function Font:getVertices(string, wrap, halign, valign) end
 ---
 ---These could be placed in a vertex buffer using the following buffer format:
 ---
----    { 'vec2:VertexPosition', 'vec2:VertexUV' }
+---    {
+---      { 'VertexPosition', 'vec2' },
+---      { 'VertexUV', 'vec2' }
+---    }
 ---
----@param strings table A table of colored strings, each given as a `{ color, string }` pair.  The color can be a `Vec3`, `Vec4`, table, or hexcode.
+---@param strings table A table of multicolor strings.  The colors aren't used for anything, this just exists to match `Pass:text`.
 ---@param wrap? number The maximum line length.  The units depend on the pixel density of the font, but are in meters by default.
 ---@param halign HorizontalAlign The horizontal align.
 ---@param valign VerticalAlign The vertical align.
----@return table vertices The table of vertices.  See below for the format of each vertex.
+---@return {number} vertices The table of vertices.  See below for the format of each vertex.
 ---@return Material material A Material to use when rendering the vertices.
 function Font:getVertices(strings, wrap, halign, valign) end
 
@@ -3946,7 +2060,7 @@ function Font:getWidth(string) end
 
 ---Returns the maximum width of a piece of text.  This function does not perform wrapping but does respect newlines in the text.
 ---
----@param strings table A table of colored strings, each given as a `{ color, string }` pair.  The color can be a `Vec3`, `Vec4`, table, or hexcode.
+---@param strings table A table of multicolor strings to measure.  The colors aren't used for anything, this just exists to match `Pass:text`.
 ---@return number width The maximum width of the text.
 function Font:getWidth(strings) end
 
@@ -4005,6 +2119,12 @@ function Material:getProperties() end
 ---@class Mesh
 local Mesh = {}
 
+---Rebuilds raytracing data for the Mesh.
+---
+---The first time a Mesh is added to a Raytracer with `Raytracer:add`, it computes raytracing data for its vertices automatically.  However, if the Mesh vertices change later, this raytracing data will be out of date.  This function is used to rebuild the raytracing data.  Afterwards, `Raytracer:build` also needs to be called on any `Raytracer` objects holding the Mesh.
+---
+function Mesh:buildRaytracer() end
+
 ---Computes the axis-aligned bounding box of the Mesh from its vertices.
 ---
 ---If the Mesh was created with the `gpu` storage mode, this function will do nothing and return `false`.
@@ -4019,6 +2139,13 @@ local Mesh = {}
 ---
 ---@return boolean updated Whether the bounding box was updated.
 function Mesh:computeBoundingBox() end
+
+---Returns the base vertex of the Mesh.  This is an offset added to index buffer values before reading the vertex from the vertex buffer.
+---
+---Adjusting the base vertex is useful for storing multiple indexed meshes in a single Mesh object. Rather than manually offsetting all of the index buffer values to account for the offset where each sub-mesh is stored, the base vertex can be changed instead.
+---
+---@return number offset The offset applied to values in the index buffer during drawing.
+function Mesh:getBaseVertex() end
 
 ---Returns the axis-aligned bounding box of the Mesh, or `nil` if the Mesh doesn't have a bounding box.
 ---
@@ -4063,9 +2190,9 @@ function Mesh:getIndexBuffer() end
 ---
 ---#### Notes:
 ---
----This function will be very very slow if the Mesh's storage is `gpu`, because the data needs to be downloaded from the GPU.
+---This function returns `nil` if the mesh was created with `gpu` storage.
 ---
----@return table t A table of numbers with the 1-based vertex indices.
+---@return {number} t A table of numbers with the 1-based vertex indices.
 function Mesh:getIndices() end
 
 ---Returns the `Material` applied to the Mesh.
@@ -4122,6 +2249,10 @@ function Mesh:getVertexCount() end
 ---      <td>The texture coordinate of the vertex.</td>
 ---    </tr>
 ---    <tr>
+---      <td><code>VertexUV2</code></td>
+---      <td>The second texture coordinate of the vertex (often used for lightmapping).</td>
+---    </tr>
+---    <tr>
 ---      <td><code>VertexColor</code></td>
 ---      <td>The color of the vertex (linear color space).</td>
 ---    </tr>
@@ -4145,15 +2276,19 @@ function Mesh:getVertexStride() end
 ---
 ---#### Notes:
 ---
----> **This function will be very very slow if the storage mode of the Mesh is `gpu`, because the
----> data will be downloaded from VRAM.  A better option is to call `Buffer:newReadback` on the
----> Mesh's underlying vertex buffer (`Mesh:getVertexBuffer`), which will download in the
----> background instead of waiting for it to complete.**
+---This function returns `nil` if the mesh was created with `gpu` storage.
 ---
 ---@param index? number The index of the first vertex to return.
 ---@param count? number The number of vertices to return.  If nil, returns the "rest" of the vertices, based on the `index` argument.
----@return table vertices A table of vertices.  Each vertex is a table of numbers for each vertex attribute, given by the vertex format of the Mesh.
+---@return {{number}} vertices A table of vertices.  Each vertex is a table of numbers for each vertex attribute, given by the vertex format of the Mesh.
 function Mesh:getVertices(index, count) end
+
+---Sets the base vertex of the Mesh.  This is an offset added to index buffer values before reading the vertex from the vertex buffer.
+---
+---Adjusting the base vertex is useful for storing multiple indexed meshes in a single Mesh object. Rather than manually offsetting all of the index buffer values to account for the offset where each sub-mesh is stored, the base vertex can be changed instead.
+---
+---@param offset? number An offset applied to values in the index buffer during drawing.
+function Mesh:setBaseVertex(offset) end
 
 ---Sets or removes the axis-aligned bounding box of the Mesh.
 ---
@@ -4190,7 +2325,18 @@ function Mesh:setDrawMode(mode) end
 ---
 ---@param start number The index of the first vertex that will be drawn (or the first index, if the Mesh has vertex indices).
 ---@param count number The number of vertices that will be drawn (or indices, if the Mesh has vertex indices).
+function Mesh:setDrawRange(start, count) end
+
+---Sets the range of vertices drawn by the Mesh.  If different sets of mesh data are stored in a single Mesh object, the draw range can be used to select different sets of vertices to render.
+---
+---#### Notes:
+---
+---When using an index buffer, the draw range defines a range of indices to render instead of a range of vertices.  Additionally, a vertex offset can be set, which is added to the values in the index buffer before fetching the vertices.  This makes it easier to pack multiple sets of indexed mesh data in a single Mesh object, without having to manually offset the data in each index buffer.
+---
+---@param start number The index of the first vertex that will be drawn (or the first index, if the Mesh has vertex indices).
+---@param count number The number of vertices that will be drawn (or indices, if the Mesh has vertex indices).
 ---@param offset number When the Mesh has vertex indices, an offset that will be added to the index values before fetching the corresponding vertex.  This is ignored if the Mesh does not have vertex indices.
+---@deprecated
 function Mesh:setDrawRange(start, count, offset) end
 
 ---Sets the range of vertices drawn by the Mesh.  If different sets of mesh data are stored in a single Mesh object, the draw range can be used to select different sets of vertices to render.
@@ -4243,7 +2389,7 @@ function Mesh:setIndexBuffer(buffer) end
 ---
 ---If a Mesh doesn't have vertex indices, then the vertices are rendered in order.
 ---
----@param t table A list of numbers (1-based).
+---@param t {number} A list of numbers (1-based).
 function Mesh:setIndices(t) end
 
 ---Sets or clears the vertex indices of the Mesh.  Vertex indices define the list of triangles in the mesh.  They allow vertices to be reused multiple times without duplicating all their data, which can save a lot of memory and processing time if a vertex is used for multiple triangles.
@@ -4291,9 +2437,9 @@ function Mesh:setMaterial(texture) end
 ---
 ---CPU meshes will write the data to CPU memory and upload any changes to the GPU before the Mesh is drawn.  GPU meshes don't store this CPU copy of the data, and will immediately upload the new vertex data to VRAM.  This means that multiple calls to this function might be slower on a `gpu` mesh.
 ---
----@param vertices table A table of vertices, where each vertex is a table of numbers matching the vertex format of the Mesh.
----@param index? number The index of the first vertex to return.
----@param count? number The number of vertices to return.  If nil, returns the "rest" of the vertices, based on the `index` argument.
+---@param vertices {{number}} A table of vertices, where each vertex is a table of numbers matching the vertex format of the Mesh.
+---@param index? number The index of the first vertex to set.
+---@param count? number The number of vertices to set.
 function Mesh:setVertices(vertices, index, count) end
 
 ---Sets the data for vertices in the Mesh.
@@ -4318,21 +2464,21 @@ function Mesh:setVertices(vertices, index, count) end
 ---CPU meshes will write the data to CPU memory and upload any changes to the GPU before the Mesh is drawn.  GPU meshes don't store this CPU copy of the data, and will immediately upload the new vertex data to VRAM.  This means that multiple calls to this function might be slower on a `gpu` mesh.
 ---
 ---@param blob Blob A Blob containing binary vertex data.
----@param index? number The index of the first vertex to return.
----@param count? number The number of vertices to return.  If nil, returns the "rest" of the vertices, based on the `index` argument.
+---@param index? number The index of the first vertex to set.
+---@param count? number The number of vertices to set.
 function Mesh:setVertices(blob, index, count) end
 
 ---Models are 3D model assets loaded from files.  Currently, OBJ, glTF, and binary STL files are supported.
 ---
----A model can be drawn using `Pass:draw`.
+---A model can be drawn using `Pass:draw`.  A specific mesh or part of a mesh can be drawn using `Pass:drawPart`.
 ---
----The raw CPU data for a model is held in a `ModelData` object, which can be loaded on threads or reused for multiple Model instances.
+---The raw CPU data for a model is held in a `ModelData` object.
 ---
 ---Models have a hierarchy of nodes which can have their transforms modified.  Meshes are attached to these nodes.  The same mesh can be attached to multiple nodes, allowing it to be drawn multiple times while only storing a single copy of its data.
 ---
 ---Models can have animations.  Animations have keyframes which affect the transforms of nodes. Right now each model can only be drawn with a single animated pose per frame.
 ---
----Models can have materials, which are collections of properties and textures that define how its surface is affected by lighting.  Each mesh in the model can use a single material.
+---Models can have materials, which are collections of properties and textures that define how its surface is affected by lighting.  Meshes are split up into multiple parts, and each part can have its own material.
 ---@class Model
 local Model = {}
 
@@ -4352,31 +2498,16 @@ local Model = {}
 ---
 ---`Model:resetNodeTransforms` can be used to reset the model nodes to their initial transforms, which is helpful to ensure animating starts from a clean slate.
 ---
----@param name string The name of an animation in the model file.
+---@param animation string The name or index of an animation in the model file.
 ---@param time number The timestamp to evaluate the keyframes at, in seconds.
 ---@param blend? number How much of the animation's pose to blend into the nodes, from 0 to 1.
-function Model:animate(name, time, blend) end
+function Model:animate(animation, time, blend) end
 
----Animates a Model by setting or blending the transforms of nodes using data stored in the keyframes of an animation.
+---Rebuilds raytracing data for the Model.
 ---
----The animation from the model file is evaluated at the timestamp, resulting in a set of node properties.  These properties are then applied to the nodes in the model, using an optional blend factor.  If the animation doesn't have keyframes that target a given node, the node will remain unchanged.
+---The first time a Model is added to a Raytracer with `Raytracer:add`, it computes raytracing data for its meshes automatically.  However, if the Model is animated or its node transforms change later, this raytracing data will be out of date.  This function is used to rebuild the raytracing data.  Afterwards, `Raytracer:build` also needs to be called on any `Raytracer` objects holding the Model.
 ---
----#### Notes:
----
----If the timestamp is larger than the duration of the animation, it will wrap back around to zero, so looping an animation doesn't require using the modulo operator.
----
----To change the speed of the animation, multiply the timestamp by a speed factor.
----
----For each animated property in the animation, if the timestamp used for the animation is less than the timestamp of the first keyframe, the data of the first keyframe will be used.
----
----This function can be called multiple times to layer and blend animations.  The model joints will be drawn in the final resulting pose.
----
----`Model:resetNodeTransforms` can be used to reset the model nodes to their initial transforms, which is helpful to ensure animating starts from a clean slate.
----
----@param index number The index of an animation in the model file.
----@param time number The timestamp to evaluate the keyframes at, in seconds.
----@param blend? number How much of the animation's pose to blend into the nodes, from 0 to 1.
-function Model:animate(index, time, blend) end
+function Model:buildRaytracer() end
 
 ---Returns a lightweight copy of a Model.  Most of the data will be shared between the two copies of the model, like the materials, textures, and metadata.  However, the clone has its own set of node transforms, allowing it to be animated separately from its parent.  This allows a single model to be rendered in multiple different animation poses in a frame.
 ---
@@ -4398,36 +2529,24 @@ function Model:getAnimationCount() end
 ---
 ---The duration of an animation is calculated as the largest timestamp of all of its keyframes.
 ---
----@param index number The animation index.
+---@param animation string | number The name or index of an animation.
 ---@return number duration The duration of the animation, in seconds.
-function Model:getAnimationDuration(index) end
-
----Returns the duration of an animation in the Model, in seconds.
----
----#### Notes:
----
----The duration of an animation is calculated as the largest timestamp of all of its keyframes.
----
----@param name string The name of the animation.
----@return number duration The duration of the animation, in seconds.
-function Model:getAnimationDuration(name) end
+function Model:getAnimationDuration(animation) end
 
 ---Returns the name of an animation in the Model.
 ---
 ---@param index number The index of an animation.
----@return string name The name of the animation.
+---@return string | nil name The name of the animation, or `nil` if the animation doesn't have a name.
 function Model:getAnimationName(index) end
 
----Returns the number of blend shapes in the model.
+---Returns the total number of blend shapes in the Model.
 ---
----@return number count The number of blend shapes in the model.
+---This is a combined list from all the meshes.  It is also possible to query the blend shapes for a single mesh, using `Model:getMeshBlendShapeCount`.
+---
+---@return number count The total number of blend shapes in the Model.
 function Model:getBlendShapeCount() end
 
----Returns the name of a blend shape in the model.
----
----#### Notes:
----
----This function will throw an error if the blend shape index is invalid.
+---Returns the name of a blend shape.
 ---
 ---@param index number The index of a blend shape.
 ---@return string name The name of the blend shape.
@@ -4443,23 +2562,9 @@ function Model:getBlendShapeName(index) end
 ---
 ---This function will throw an error if the blend shape name or index doesn't exist.
 ---
----@param index number The index of a blend shape.
+---@param blendshape string | number The name or index of a blend shape.
 ---@return number weight The weight of the blend shape.
-function Model:getBlendShapeWeight(index) end
-
----Returns the weight of a blend shape.  A blend shape contains offset values for the vertices of one of the meshes in a Model.  Whenever the Model is drawn, the offsets are multiplied by the weight of the blend shape, allowing for smooth blending between different meshes.  A weight of zero won't apply any displacement and will skip processing of the blend shape.
----
----#### Notes:
----
----The initial weights are declared in the model file.
----
----Weights can be any number, but usually they're kept between 0 and 1.
----
----This function will throw an error if the blend shape name or index doesn't exist.
----
----@param name string The name of a blend shape.
----@return number weight The weight of the blend shape.
-function Model:getBlendShapeWeight(name) end
+function Model:getBlendShapeWeight(blendshape) end
 
 ---Returns the 6 values of the Model's axis-aligned bounding box.
 ---
@@ -4471,59 +2576,124 @@ function Model:getBlendShapeWeight(name) end
 ---@return number maxz The maximum z coordinate of the vertices in the Model.
 function Model:getBoundingBox() end
 
----Returns a sphere approximately enclosing the vertices in the Model.
+---Returns the 6 values of the Model's axis-aligned bounding box.
 ---
----@return number x The x coordinate of the position of the sphere.
----@return number y The y coordinate of the position of the sphere.
----@return number z The z coordinate of the position of the sphere.
----@return number radius The radius of the bounding sphere.
-function Model:getBoundingSphere() end
+---@param mesh number The mesh to get the bounding box of.
+---@return number minx The minimum x coordinate of the vertices in the Model.
+---@return number maxx The maximum x coordinate of the vertices in the Model.
+---@return number miny The minimum y coordinate of the vertices in the Model.
+---@return number maxy The maximum y coordinate of the vertices in the Model.
+---@return number minz The minimum z coordinate of the vertices in the Model.
+---@return number maxz The maximum z coordinate of the vertices in the Model.
+function Model:getBoundingBox(mesh) end
+
+---Returns the 6 values of the Model's axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the bounding box of.
+---@param part number The part to get the bounding box of.
+---@return number minx The minimum x coordinate of the vertices in the Model.
+---@return number maxx The maximum x coordinate of the vertices in the Model.
+---@return number miny The minimum y coordinate of the vertices in the Model.
+---@return number maxy The maximum y coordinate of the vertices in the Model.
+---@return number minz The minimum z coordinate of the vertices in the Model.
+---@return number maxz The maximum z coordinate of the vertices in the Model.
+function Model:getBoundingBox(mesh, part) end
 
 ---Returns the center of the Model's axis-aligned bounding box, relative to the Model's origin.
 ---
----@return number x The x offset of the center of the bounding box.
----@return number y The y offset of the center of the bounding box.
----@return number z The z offset of the center of the bounding box.
+---@return number x The x coordinate of the center of the bounding box.
+---@return number y The y coordinate of the center of the bounding box.
+---@return number z The z coordinate of the center of the bounding box.
 function Model:getCenter() end
 
----Returns the ModelData this Model was created from.
+---Returns the center of the Model's axis-aligned bounding box, relative to the Model's origin.
 ---
----@return ModelData data The ModelData.
-function Model:getData() end
+---@param mesh number The mesh to get the dimensions of.
+---@return number x The x coordinate of the center of the bounding box.
+---@return number y The y coordinate of the center of the bounding box.
+---@return number z The z coordinate of the center of the bounding box.
+function Model:getCenter(mesh) end
+
+---Returns the center of the Model's axis-aligned bounding box, relative to the Model's origin.
+---
+---@param mesh number The mesh to get the dimensions of.
+---@param part number The part to get the dimensions of.
+---@return number x The x coordinate of the center of the bounding box.
+---@return number y The y coordinate of the center of the bounding box.
+---@return number z The z coordinate of the center of the bounding box.
+function Model:getCenter(mesh, part) end
 
 ---Returns the depth of the Model, computed from its axis-aligned bounding box.
 ---
----@return number depth The depth of the Model.
+---@return number depth The depth.
 function Model:getDepth() end
+
+---Returns the depth of the Model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the depth of.
+---@return number depth The depth.
+function Model:getDepth(mesh) end
+
+---Returns the depth of the Model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the depth of.
+---@param part number The part to get the depth of.
+---@return number depth The depth.
+function Model:getDepth(mesh, part) end
 
 ---Returns the width, height, and depth of the Model, computed from its axis-aligned bounding box.
 ---
----@return number width The width of the Model.
----@return number height The height of the Model.
----@return number depth The depth of the Model.
+---@return number width The width.
+---@return number height The height.
+---@return number depth The depth.
 function Model:getDimensions() end
+
+---Returns the width, height, and depth of the Model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the dimensions of.
+---@return number width The width.
+---@return number height The height.
+---@return number depth The depth.
+function Model:getDimensions(mesh) end
+
+---Returns the width, height, and depth of the Model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the dimensions of.
+---@param part number The part to get the dimensions of.
+---@return number width The width.
+---@return number height The height.
+---@return number depth The depth.
+function Model:getDimensions(mesh, part) end
 
 ---Returns the height of the Model, computed from its axis-aligned bounding box.
 ---
----@return number height The height of the Model.
+---@return number height The height.
 function Model:getHeight() end
+
+---Returns the height of the Model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the height of.
+---@return number height The height.
+function Model:getHeight(mesh) end
+
+---Returns the height of the Model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the height of.
+---@param part number The part to get the height of.
+---@return number height The height.
+function Model:getHeight(mesh, part) end
 
 ---Returns the index buffer used by the Model.  The index buffer describes the order used to draw the vertices in each mesh.
 ---
 ---@return Buffer buffer The index buffer.
+---@deprecated
 function Model:getIndexBuffer() end
 
 ---Returns a `Material` loaded from the Model.
 ---
----@param name string The name of the Material to return.
+---@param which string | number The name or index of the Material to return.
 ---@return Material material The material.
-function Model:getMaterial(name) end
-
----Returns a `Material` loaded from the Model.
----
----@param index number The index of the Material to return.
----@return Material material The material.
-function Model:getMaterial(index) end
+function Model:getMaterial(which) end
 
 ---Returns the number of materials in the Model.
 ---
@@ -4533,34 +2703,94 @@ function Model:getMaterialCount() end
 ---Returns the name of a material in the Model.
 ---
 ---@param index number The index of a material.
----@return string name The name of the material.
+---@return string name The name of the material, or nil if the material does not have a name.
 function Model:getMaterialName(index) end
 
 ---Returns a `Mesh` from the Model.
 ---
 ---@param index number The index of the Mesh to return.
 ---@return Mesh mesh The mesh object.
+---@deprecated
 function Model:getMesh(index) end
+
+---Returns the number of blend shapes in one of the Model's meshes.
+---
+---@param mesh number The index of the mesh.
+---@return number count The number of blend shapes the mesh has.
+function Model:getMeshBlendShapeCount(mesh) end
+
+---Returns the name of a blend shape.
+---
+---@param mesh number The index of a mesh.
+---@param blendshape number The index of a blend shape in the mesh.
+---@return string name The name of the blend shape.
+function Model:getMeshBlendShapeName(mesh, blendshape) end
 
 ---Returns the number of meshes in the Model.
 ---
 ---@return number count The number of meshes in the Model.
 function Model:getMeshCount() end
 
+---Returns the draw mode of a mesh part.  The draw mode controls how mesh vertices are connected together. Meshes can be split into multiple parts, and each part can have its own draw mode.
+---
+---@param mesh number The index of a mesh.
+---@return ModelDrawMode mode The draw mode of the part.
+function Model:getMeshDrawMode(mesh) end
+
+---Returns the vertex range of a part of a mesh.  Meshes can be split into multiple "parts", and each part can have its own draw mode and material.
+---
+---#### Notes:
+---
+---Parts will always use the full set of vertices/indices in the mesh, in order.
+---
+---If the mesh has indices, then the draw range will be in terms of indices, otherwise it will be vertices.  This matches the way `Mesh:setDrawRange` works.
+---
+---@param mesh number The index of a mesh.
+---@return number start The index of the first vertex or index in the part.
+---@return number count The number of vertices or indices in the part.
+function Model:getMeshDrawRange(mesh) end
+
+---Returns the number of vertex indices in a mesh.  Vertex indices allow for vertices to be reused when defining triangles.
+---
+---#### Notes:
+---
+---This may return zero if the mesh does not use indices.
+---
+---@param mesh number The index of a mesh.
+---@return number count The number of vertex indices in the mesh.
+function Model:getMeshIndexCount(mesh) end
+
+---Returns the index of the material used by a mesh part.  Meshes can be split into multiple parts, and each part can have its own material.
+---
+---@param mesh number The index of a mesh.
+---@param part? number The index of a part.
+---@return number | nil material The index of the material applied to the part, or nil if the part does not have a material.
+function Model:getMeshMaterial(mesh, part) end
+
+---Returns the number of parts in a mesh.  Meshes can be split into multiple "parts".  Each part refers to a subset of the mesh's vertices, and parts can have their own draw mode and material.
+---
+---@param mesh number The index of the mesh.
+---@return number parts The number of parts in the mesh.
+function Model:getMeshPartCount(mesh) end
+
+---Returns the number of vertices in a mesh.
+---
+---@param mesh number The index of a mesh.
+---@return number count The number of vertices in the mesh.
+function Model:getMeshVertexCount(mesh) end
+
 ---Returns extra information stored in the model file.  Currently this is only implemented for glTF models and returns the JSON string from the glTF or glb file.  The metadata can be used to get application-specific data or add support for glTF extensions not supported by LÖVR.
 ---
 ---@return string metadata The metadata from the model file.
 function Model:getMetadata() end
 
----Given a parent node, this function returns a table with the indices of its children.
+---Given a parent node, this function returns the index of its first child, or `nil` if it doesn't have any children.
 ---
----#### Notes:
+---This, together with `Model:getNodeSibling`, can be used to iterate the tree of nodes in a model.
 ---
----If the node does not have any children, this function returns an empty table.
----
----@param index number The index of the parent node.
----@return table children A table containing a node index for each child of the node.
-function Model:getNodeChildren(index) end
+---@param node string | number The name or index of the parent node.
+---@return number | nil child The index of the node's first child, or `nil` if the node doesn't have any children.
+function Model:getNodeChild(node) end
 
 ---Given a parent node, this function returns a table with the indices of its children.
 ---
@@ -4568,16 +2798,27 @@ function Model:getNodeChildren(index) end
 ---
 ---If the node does not have any children, this function returns an empty table.
 ---
----@param name string The name of the parent node.
----@return table children A table containing a node index for each child of the node.
-function Model:getNodeChildren(name) end
+---@param node string | number The name or index of the parent node.
+---@return {number} children A table containing the node index of each child of the parent node.
+---@deprecated
+function Model:getNodeChildren(node) end
 
----Returns the number of nodes in the model.
+---Returns the number of nodes in the Model.
 ---
----@return number count The number of nodes in the model.
+---@return number count The number of nodes in the Model.
 function Model:getNodeCount() end
 
----Returns the name of a node.
+---Returns the index of the mesh attached to a node.  Meshes contain the geometry and material information, whereas the nodes define the hierarchy and transforms.  A single mesh can be attached to multiple nodes.  Not every node has a mesh.
+---
+---@param node string | number The name or index of a node.
+---@return number | nil mesh The index of the node's mesh, or `nil` if the node does not have a mesh.
+function Model:getNodeMesh(node) end
+
+---Returns the name of a node in the Model.
+---
+---#### Notes:
+---
+---If the node does not have a name, this function returns `nil`.
 ---
 ---@param index number The index of the node.
 ---@return string name The name of the node.
@@ -4585,39 +2826,23 @@ function Model:getNodeName(index) end
 
 ---Returns the orientation of a node.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@param origin? OriginType Whether the orientation should be returned relative to the root node or the node's parent.
 ---@return number angle The number of radians the node is rotated around its axis of rotation.
 ---@return number ax The x component of the axis of rotation.
 ---@return number ay The y component of the axis of rotation.
 ---@return number az The z component of the axis of rotation.
-function Model:getNodeOrientation(index, origin) end
-
----Returns the orientation of a node.
----
----@param name string The name of the node.
----@param origin? OriginType Whether the orientation should be returned relative to the root node or the node's parent.
----@return number angle The number of radians the node is rotated around its axis of rotation.
----@return number ax The x component of the axis of rotation.
----@return number ay The y component of the axis of rotation.
----@return number az The z component of the axis of rotation.
-function Model:getNodeOrientation(name, origin) end
+function Model:getNodeOrientation(node, origin) end
 
 ---Given a child node, this function returns the index of its parent.
 ---
----@param index number The index of the child node.
----@return number parent The index of the parent.
-function Model:getNodeParent(index) end
-
----Given a child node, this function returns the index of its parent.
----
----@param name string The name of the child node.
----@return number parent The index of the parent.
-function Model:getNodeParent(name) end
+---@param node string | number The name or index of the child node.
+---@return number parent The index of the parent node.
+function Model:getNodeParent(node) end
 
 ---Returns the pose (position and orientation) of a node.
 ---
----@param index number The index of a node.
+---@param node string | number The name or index of a node.
 ---@param origin? OriginType Whether the pose should be returned relative to the root node or the node's parent.
 ---@return number x The x position of the node.
 ---@return number y The y position of the node.
@@ -4626,60 +2851,37 @@ function Model:getNodeParent(name) end
 ---@return number ax The x component of the axis of rotation.
 ---@return number ay The y component of the axis of rotation.
 ---@return number az The z component of the axis of rotation.
-function Model:getNodePose(index, origin) end
-
----Returns the pose (position and orientation) of a node.
----
----@param name string The name of a node.
----@param origin? OriginType Whether the pose should be returned relative to the root node or the node's parent.
----@return number x The x position of the node.
----@return number y The y position of the node.
----@return number z The z position of the node.
----@return number angle The number of radians the node is rotated around its axis of rotation.
----@return number ax The x component of the axis of rotation.
----@return number ay The y component of the axis of rotation.
----@return number az The z component of the axis of rotation.
-function Model:getNodePose(name, origin) end
+function Model:getNodePose(node, origin) end
 
 ---Returns the position of a node.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@param space? OriginType Whether the position should be returned relative to the root node or the node's parent.
 ---@return number x The x coordinate.
 ---@return number y The y coordinate.
 ---@return number z The z coordinate.
-function Model:getNodePosition(index, space) end
-
----Returns the position of a node.
----
----@param name string The name of the node.
----@param space? OriginType Whether the position should be returned relative to the root node or the node's parent.
----@return number x The x coordinate.
----@return number y The y coordinate.
----@return number z The z coordinate.
-function Model:getNodePosition(name, space) end
+function Model:getNodePosition(node, space) end
 
 ---Returns the scale of a node.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@param origin? OriginType Whether the scale should be returned relative to the root node or the node's parent.
 ---@return number x The x scale.
 ---@return number y The y scale.
 ---@return number z The z scale.
-function Model:getNodeScale(index, origin) end
+function Model:getNodeScale(node, origin) end
 
----Returns the scale of a node.
+---Returns the next sibling of a node (a node with the same parent), or `nil` if the node doesn't have a sibling.
 ---
----@param name string The name of the node.
----@param origin? OriginType Whether the scale should be returned relative to the root node or the node's parent.
----@return number x The x scale.
----@return number y The y scale.
----@return number z The z scale.
-function Model:getNodeScale(name, origin) end
+---This, together with `Model:getNodeChild`, can be used to iterate the tree of nodes in a Model.
+---
+---@param node string | number The name or index of a node.
+---@return number | nil sibling The index of the node's next sibling, or `nil` if the node doesn't have a sibling.
+function Model:getNodeSibling(node) end
 
 ---Returns the transform (position, scale, and rotation) of a node.
 ---
----@param index number The index of a node.
+---@param node string | number The name or index of a node.
 ---@param origin? OriginType Whether the transform should be returned relative to the root node or the node's parent.
 ---@return number x The x position of the node.
 ---@return number y The y position of the node.
@@ -4691,25 +2893,9 @@ function Model:getNodeScale(name, origin) end
 ---@return number ax The x component of the axis of rotation.
 ---@return number ay The y component of the axis of rotation.
 ---@return number az The z component of the axis of rotation.
-function Model:getNodeTransform(index, origin) end
+function Model:getNodeTransform(node, origin) end
 
----Returns the transform (position, scale, and rotation) of a node.
----
----@param name string The name of a node.
----@param origin? OriginType Whether the transform should be returned relative to the root node or the node's parent.
----@return number x The x position of the node.
----@return number y The y position of the node.
----@return number z The z position of the node.
----@return number sx The x scale of the node.
----@return number sy The y scale of the node.
----@return number sz The z scale of the node.
----@return number angle The number of radians the node is rotated around its axis of rotation.
----@return number ax The x component of the axis of rotation.
----@return number ay The y component of the axis of rotation.
----@return number az The z component of the axis of rotation.
-function Model:getNodeTransform(name, origin) end
-
----Returns the index of the model's root node.
+---Returns the index of the Model's root node.
 ---
 ---@return number root The index of the root node.
 function Model:getRootNode() end
@@ -4725,47 +2911,29 @@ function Model:getTexture(index) end
 ---@return number count The number of textures in the Model.
 function Model:getTextureCount() end
 
----Returns the total number of triangles in the Model.
----
----#### Notes:
----
----This isn't always related to the length of the vertex buffer, since a mesh in the Model could be drawn by multiple nodes.
----
----@return number count The total number of triangles in the Model.
-function Model:getTriangleCount() end
-
----Returns 2 tables containing mesh data for the Model.
----
----The first table is a list of vertex positions and contains 3 numbers for the x, y, and z coordinate of each vertex.  The second table is a list of triangles and contains 1-based indices into the first table representing the first, second, and third vertices that make up each triangle.
----
----The vertex positions will be affected by node transforms.
----
----#### Notes:
----
----After this function is called on a Model once, the result is cached (in its ModelData).
----
----@return table vertices The triangle vertex positions, returned as a flat (non-nested) table of numbers.  The position of each vertex is given as an x, y, and z coordinate.
----@return table indices A list of numbers representing how to connect the vertices into triangles.  Each number is a 1-based index into the `vertices` table, and every 3 indices form a triangle.
-function Model:getTriangles() end
-
 ---Returns a `Buffer` that holds the vertices of all of the meshes in the Model.
 ---
 ---@return Buffer buffer The vertex buffer.
+---@deprecated
 function Model:getVertexBuffer() end
-
----Returns the total vertex count of the Model.
----
----#### Notes:
----
----This isn't always the same as the length of the vertex buffer, since a mesh in the Model could be drawn by multiple nodes.
----
----@return number count The total number of vertices.
-function Model:getVertexCount() end
 
 ---Returns the width of the Model, computed from its axis-aligned bounding box.
 ---
----@return number width The width of the Model.
+---@return number width The width.
 function Model:getWidth() end
+
+---Returns the width of the Model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the width of.
+---@return number width The width.
+function Model:getWidth(mesh) end
+
+---Returns the width of the Model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the width of.
+---@param part number The part to get the width of.
+---@return number width The width.
+function Model:getWidth(mesh, part) end
 
 ---Returns whether the Model has any skeletal animations.
 ---
@@ -4779,6 +2947,36 @@ function Model:getWidth() end
 ---
 ---@return boolean jointed Whether the animation uses joint nodes for skeletal animation.
 function Model:hasJoints() end
+
+---Returns whether a node is visible.  Invisible nodes don't render their mesh, or any of their children.
+---
+---@param node string | number The name or index of a node.
+---@return boolean visible Whether the node is visible.
+function Model:isNodeVisible(node) end
+
+---Returns an iterator that iterates over the nodes with meshes in the Model.
+---
+---This is convenient when drawing individual meshes in the Model using `Pass:drawPart`.
+---
+---#### Example:
+---
+---```lua
+---function lovr.draw(pass)
+---  for node, mesh in model:meshes() do
+---    pass:push()
+---    pass:transform(model:getNodeTransform(node))
+---    -- Instead of drawing the whole mesh like this,
+---    -- you could also draw individual parts of the mesh
+---    pass:drawPart(model, mesh)
+---    pass:pop()
+---  end
+---end
+---```
+---
+---@return function iterator The iterator function.  The iterator function returns the index of the next node, and the index of its mesh.
+---@return Model state The Model.
+---@return nil initial The initial value.
+function Model:meshes() end
 
 ---Resets blend shape weights to the original ones defined in the model file.
 ---
@@ -4798,61 +2996,30 @@ function Model:resetNodeTransforms() end
 ---
 ---This function will throw an error if the blend shape name or index doesn't exist.
 ---
----@param index number The index of a blend shape.
+---@param blendshape string | number The name or index of a blend shape.
 ---@param weight number The new weight for the blend shape.
-function Model:setBlendShapeWeight(index, weight) end
-
----Sets the weight of a blend shape.  A blend shape contains offset values for the vertices of one of the meshes in a Model.  Whenever the Model is drawn, the offsets are multiplied by the weight of the blend shape, allowing for smooth blending between different meshes.  A weight of zero won't apply any displacement and will skip processing of the blend shape.
----
----#### Notes:
----
----The initial weights are declared in the model file.
----
----Weights can be any number, but usually they're kept between 0 and 1.
----
----This function will throw an error if the blend shape name or index doesn't exist.
----
----@param name string The name of a blend shape.
----@param weight number The new weight for the blend shape.
-function Model:setBlendShapeWeight(name, weight) end
+function Model:setBlendShapeWeight(blendshape, weight) end
 
 ---Sets or blends the orientation of a node to a new orientation.  This sets the local orientation of the node, relative to its parent.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@param angle number The number of radians the node should be rotated around its rotation axis.
 ---@param ax number The x component of the axis of rotation.
 ---@param ay number The y component of the axis of rotation.
 ---@param az number The z component of the axis of rotation.
 ---@param blend? number A number from 0 to 1 indicating how much of the target orientation to blend in.  A value of 0 will not change the node's orientation at all, whereas 1 will fully blend to the target orientation.
-function Model:setNodeOrientation(index, angle, ax, ay, az, blend) end
+function Model:setNodeOrientation(node, angle, ax, ay, az, blend) end
 
 ---Sets or blends the orientation of a node to a new orientation.  This sets the local orientation of the node, relative to its parent.
 ---
----@param name string The name of the node.
----@param angle number The number of radians the node should be rotated around its rotation axis.
----@param ax number The x component of the axis of rotation.
----@param ay number The y component of the axis of rotation.
----@param az number The z component of the axis of rotation.
+---@param node string | number The name or index of a node.
+---@param orientation quaternion The orientation.
 ---@param blend? number A number from 0 to 1 indicating how much of the target orientation to blend in.  A value of 0 will not change the node's orientation at all, whereas 1 will fully blend to the target orientation.
-function Model:setNodeOrientation(name, angle, ax, ay, az, blend) end
-
----Sets or blends the orientation of a node to a new orientation.  This sets the local orientation of the node, relative to its parent.
----
----@param index number The index of the node.
----@param orientation Quat The orientation.
----@param blend? number A number from 0 to 1 indicating how much of the target orientation to blend in.  A value of 0 will not change the node's orientation at all, whereas 1 will fully blend to the target orientation.
-function Model:setNodeOrientation(index, orientation, blend) end
-
----Sets or blends the orientation of a node to a new orientation.  This sets the local orientation of the node, relative to its parent.
----
----@param name string The name of the node.
----@param orientation Quat The orientation.
----@param blend? number A number from 0 to 1 indicating how much of the target orientation to blend in.  A value of 0 will not change the node's orientation at all, whereas 1 will fully blend to the target orientation.
-function Model:setNodeOrientation(name, orientation, blend) end
+function Model:setNodeOrientation(node, orientation, blend) end
 
 ---Sets or blends the pose (position and orientation) of a node to a new pose.  This sets the local pose of the node, relative to its parent.  The scale will remain unchanged.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@param x number The x component of the position.
 ---@param y number The y component of the position.
 ---@param z number The z component of the position.
@@ -4861,68 +3028,31 @@ function Model:setNodeOrientation(name, orientation, blend) end
 ---@param ay number The y component of the axis of rotation.
 ---@param az number The z component of the axis of rotation.
 ---@param blend? number A number from 0 to 1 indicating how much of the target pose to blend in.  A value of 0 will not change the node's pose at all, whereas 1 will fully blend to the target pose.
-function Model:setNodePose(index, x, y, z, angle, ax, ay, az, blend) end
+function Model:setNodePose(node, x, y, z, angle, ax, ay, az, blend) end
 
 ---Sets or blends the pose (position and orientation) of a node to a new pose.  This sets the local pose of the node, relative to its parent.  The scale will remain unchanged.
 ---
----@param name string The name of the node.
----@param x number The x component of the position.
----@param y number The y component of the position.
----@param z number The z component of the position.
----@param angle number The number of radians the node should be rotated around its rotation axis.
----@param ax number The x component of the axis of rotation.
----@param ay number The y component of the axis of rotation.
----@param az number The z component of the axis of rotation.
+---@param node string | number The name or index of a node.
+---@param position vector The target position.  Can also be provided as 3 numbers.
+---@param orientation quaternion The target orientation.  Can also be provided as 4 numbers in angle-axis form.
 ---@param blend? number A number from 0 to 1 indicating how much of the target pose to blend in.  A value of 0 will not change the node's pose at all, whereas 1 will fully blend to the target pose.
-function Model:setNodePose(name, x, y, z, angle, ax, ay, az, blend) end
-
----Sets or blends the pose (position and orientation) of a node to a new pose.  This sets the local pose of the node, relative to its parent.  The scale will remain unchanged.
----
----@param index number The index of the node.
----@param position Vec3 The target position.  Can also be provided as 3 numbers.
----@param orientation Quat The target orientation.  Can also be provided as 4 numbers in angle-axis form.
----@param blend? number A number from 0 to 1 indicating how much of the target pose to blend in.  A value of 0 will not change the node's pose at all, whereas 1 will fully blend to the target pose.
-function Model:setNodePose(index, position, orientation, blend) end
-
----Sets or blends the pose (position and orientation) of a node to a new pose.  This sets the local pose of the node, relative to its parent.  The scale will remain unchanged.
----
----@param name string The name of the node.
----@param position Vec3 The target position.  Can also be provided as 3 numbers.
----@param orientation Quat The target orientation.  Can also be provided as 4 numbers in angle-axis form.
----@param blend? number A number from 0 to 1 indicating how much of the target pose to blend in.  A value of 0 will not change the node's pose at all, whereas 1 will fully blend to the target pose.
-function Model:setNodePose(name, position, orientation, blend) end
+function Model:setNodePose(node, position, orientation, blend) end
 
 ---Sets or blends the position of a node.  This sets the local position of the node, relative to its parent.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@param x number The x coordinate of the new position.
 ---@param y number The y coordinate of the new position.
 ---@param z number The z coordinate of the new position.
 ---@param blend? number A number from 0 to 1 indicating how much of the new position to blend in.  A value of 0 will not change the node's position at all, whereas 1 will fully blend to the target position.
-function Model:setNodePosition(index, x, y, z, blend) end
+function Model:setNodePosition(node, x, y, z, blend) end
 
 ---Sets or blends the position of a node.  This sets the local position of the node, relative to its parent.
 ---
----@param name string The name of the node.
----@param x number The x coordinate of the new position.
----@param y number The y coordinate of the new position.
----@param z number The z coordinate of the new position.
+---@param node string | number The name or index of a node.
+---@param position vector The new position.
 ---@param blend? number A number from 0 to 1 indicating how much of the new position to blend in.  A value of 0 will not change the node's position at all, whereas 1 will fully blend to the target position.
-function Model:setNodePosition(name, x, y, z, blend) end
-
----Sets or blends the position of a node.  This sets the local position of the node, relative to its parent.
----
----@param index number The index of the node.
----@param position Vec3 The new position.
----@param blend? number A number from 0 to 1 indicating how much of the new position to blend in.  A value of 0 will not change the node's position at all, whereas 1 will fully blend to the target position.
-function Model:setNodePosition(index, position, blend) end
-
----Sets or blends the position of a node.  This sets the local position of the node, relative to its parent.
----
----@param name string The name of the node.
----@param position Vec3 The new position.
----@param blend? number A number from 0 to 1 indicating how much of the new position to blend in.  A value of 0 will not change the node's position at all, whereas 1 will fully blend to the target position.
-function Model:setNodePosition(name, position, blend) end
+function Model:setNodePosition(node, position, blend) end
 
 ---Sets or blends the scale of a node to a new scale.  This sets the local scale of the node, relative to its parent.
 ---
@@ -4930,12 +3060,12 @@ function Model:setNodePosition(name, position, blend) end
 ---
 ---For best results when animating, it's recommended to keep the 3 scale components the same.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@param sx number The x scale.
 ---@param sy number The y scale.
 ---@param sz number The z scale.
 ---@param blend? number A number from 0 to 1 indicating how much of the new scale to blend in.  A value of 0 will not change the node's scale at all, whereas 1 will fully blend to the target scale.
-function Model:setNodeScale(index, sx, sy, sz, blend) end
+function Model:setNodeScale(node, sx, sy, sz, blend) end
 
 ---Sets or blends the scale of a node to a new scale.  This sets the local scale of the node, relative to its parent.
 ---
@@ -4943,34 +3073,10 @@ function Model:setNodeScale(index, sx, sy, sz, blend) end
 ---
 ---For best results when animating, it's recommended to keep the 3 scale components the same.
 ---
----@param name string The name of the node.
----@param sx number The x scale.
----@param sy number The y scale.
----@param sz number The z scale.
+---@param node string | number The name or index of a node.
+---@param scale vector The new scale.
 ---@param blend? number A number from 0 to 1 indicating how much of the new scale to blend in.  A value of 0 will not change the node's scale at all, whereas 1 will fully blend to the target scale.
-function Model:setNodeScale(name, sx, sy, sz, blend) end
-
----Sets or blends the scale of a node to a new scale.  This sets the local scale of the node, relative to its parent.
----
----#### Notes:
----
----For best results when animating, it's recommended to keep the 3 scale components the same.
----
----@param index number The index of the node.
----@param scale Vec3 The new scale.
----@param blend? number A number from 0 to 1 indicating how much of the new scale to blend in.  A value of 0 will not change the node's scale at all, whereas 1 will fully blend to the target scale.
-function Model:setNodeScale(index, scale, blend) end
-
----Sets or blends the scale of a node to a new scale.  This sets the local scale of the node, relative to its parent.
----
----#### Notes:
----
----For best results when animating, it's recommended to keep the 3 scale components the same.
----
----@param name string The name of the node.
----@param scale Vec3 The new scale.
----@param blend? number A number from 0 to 1 indicating how much of the new scale to blend in.  A value of 0 will not change the node's scale at all, whereas 1 will fully blend to the target scale.
-function Model:setNodeScale(name, scale, blend) end
+function Model:setNodeScale(node, scale, blend) end
 
 ---Sets or blends the transform of a node to a new transform.  This sets the local transform of the node, relative to its parent.
 ---
@@ -4980,7 +3086,7 @@ function Model:setNodeScale(name, scale, blend) end
 ---
 ---Even though the translation, scale, and rotation parameters are given in TSR order, they are applied in the normal TRS order.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@param x number The x component of the position.
 ---@param y number The y component of the position.
 ---@param z number The z component of the position.
@@ -4992,7 +3098,7 @@ function Model:setNodeScale(name, scale, blend) end
 ---@param ay number The y component of the axis of rotation.
 ---@param az number The z component of the axis of rotation.
 ---@param blend? number A number from 0 to 1 indicating how much of the target transform to blend in.  A value of 0 will not change the node's transform at all, whereas 1 will fully blend to the target transform.
-function Model:setNodeTransform(index, x, y, z, sx, sy, sz, angle, ax, ay, az, blend) end
+function Model:setNodeTransform(node, x, y, z, sx, sy, sz, angle, ax, ay, az, blend) end
 
 ---Sets or blends the transform of a node to a new transform.  This sets the local transform of the node, relative to its parent.
 ---
@@ -5002,19 +3108,12 @@ function Model:setNodeTransform(index, x, y, z, sx, sy, sz, angle, ax, ay, az, b
 ---
 ---Even though the translation, scale, and rotation parameters are given in TSR order, they are applied in the normal TRS order.
 ---
----@param name string The name of the node.
----@param x number The x component of the position.
----@param y number The y component of the position.
----@param z number The z component of the position.
----@param sx number The x component of the scale.
----@param sy number The y component of the scale.
----@param sz number The z component of the scale.
----@param angle number The number of radians the node should be rotated around its rotation axis.
----@param ax number The x component of the axis of rotation.
----@param ay number The y component of the axis of rotation.
----@param az number The z component of the axis of rotation.
+---@param node string | number The name or index of a node.
+---@param position vector The position.
+---@param scale vector The scale.
+---@param orientation quaternion The orientation.
 ---@param blend? number A number from 0 to 1 indicating how much of the target transform to blend in.  A value of 0 will not change the node's transform at all, whereas 1 will fully blend to the target transform.
-function Model:setNodeTransform(name, x, y, z, sx, sy, sz, angle, ax, ay, az, blend) end
+function Model:setNodeTransform(node, position, scale, orientation, blend) end
 
 ---Sets or blends the transform of a node to a new transform.  This sets the local transform of the node, relative to its parent.
 ---
@@ -5024,53 +3123,16 @@ function Model:setNodeTransform(name, x, y, z, sx, sy, sz, angle, ax, ay, az, bl
 ---
 ---Even though the translation, scale, and rotation parameters are given in TSR order, they are applied in the normal TRS order.
 ---
----@param index number The index of the node.
----@param position Vec3 The position.
----@param scale Vec3 The scale.
----@param orientation Quat The orientation.
----@param blend? number A number from 0 to 1 indicating how much of the target transform to blend in.  A value of 0 will not change the node's transform at all, whereas 1 will fully blend to the target transform.
-function Model:setNodeTransform(index, position, scale, orientation, blend) end
-
----Sets or blends the transform of a node to a new transform.  This sets the local transform of the node, relative to its parent.
----
----#### Notes:
----
----For best results when animating, it's recommended to keep the 3 components of the scale the same.
----
----Even though the translation, scale, and rotation parameters are given in TSR order, they are applied in the normal TRS order.
----
----@param name string The name of the node.
----@param position Vec3 The position.
----@param scale Vec3 The scale.
----@param orientation Quat The orientation.
----@param blend? number A number from 0 to 1 indicating how much of the target transform to blend in.  A value of 0 will not change the node's transform at all, whereas 1 will fully blend to the target transform.
-function Model:setNodeTransform(name, position, scale, orientation, blend) end
-
----Sets or blends the transform of a node to a new transform.  This sets the local transform of the node, relative to its parent.
----
----#### Notes:
----
----For best results when animating, it's recommended to keep the 3 components of the scale the same.
----
----Even though the translation, scale, and rotation parameters are given in TSR order, they are applied in the normal TRS order.
----
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@param transform Mat4 The transform.
 ---@param blend? number A number from 0 to 1 indicating how much of the target transform to blend in.  A value of 0 will not change the node's transform at all, whereas 1 will fully blend to the target transform.
-function Model:setNodeTransform(index, transform, blend) end
+function Model:setNodeTransform(node, transform, blend) end
 
----Sets or blends the transform of a node to a new transform.  This sets the local transform of the node, relative to its parent.
+---Set the visibility of a node.  Invisible nodes don't render their mesh, or any of their children.
 ---
----#### Notes:
----
----For best results when animating, it's recommended to keep the 3 components of the scale the same.
----
----Even though the translation, scale, and rotation parameters are given in TSR order, they are applied in the normal TRS order.
----
----@param name string The name of the node.
----@param transform Mat4 The transform.
----@param blend? number A number from 0 to 1 indicating how much of the target transform to blend in.  A value of 0 will not change the node's transform at all, whereas 1 will fully blend to the target transform.
-function Model:setNodeTransform(name, transform, blend) end
+---@param node string | number The name or index of a node.
+---@param visible boolean Whether the node should be visible.
+function Model:setNodeVisible(node, visible) end
 
 ---Pass objects record work for the GPU.  They contain a list of things to draw and a list of compute shaders to run.
 ---
@@ -5144,9 +3206,9 @@ function Pass:box(x, y, z, width, height, depth, angle, ax, ay, az, style) end
 
 ---Draw a box.  This is like `Pass:cube`, except it takes 3 separate values for the scale.
 ---
----@param position Vec3 The position of the box.
----@param size Vec3 The size of the box.
----@param orientation Quat The orientation of the box.
+---@param position vector The position of the box.
+---@param size vector The size of the box.
+---@param orientation quaternion The orientation of the box.
 ---@param style? DrawStyle Whether the box should be drawn filled or outlined.
 function Pass:box(position, size, orientation, style) end
 
@@ -5180,10 +3242,10 @@ function Pass:capsule(x, y, z, radius, length, angle, ax, ay, az, segments) end
 ---
 ---The length of the capsule does not include the end caps.  The local origin of the capsule is in the center, and the local z axis points towards the end caps.
 ---
----@param position Vec3 The position of the center of the capsule.
+---@param position vector The position of the center of the capsule.
 ---@param radius? number The radius of the capsule.
 ---@param length? number The length of the capsule.
----@param orientation Quat The orientation of the capsule.
+---@param orientation quaternion The orientation of the capsule.
 ---@param segments? number The number of circular segments to render.
 function Pass:capsule(position, radius, length, orientation, segments) end
 
@@ -5203,8 +3265,8 @@ function Pass:capsule(transform, segments) end
 ---
 ---The length of the capsule does not include the end caps.  The local origin of the capsule is in the center, and the local z axis points towards the end caps.
 ---
----@param p1 Vec3 The starting point of the capsule.
----@param p2 Vec3 The ending point of the capsule.
+---@param p1 vector The starting point of the capsule.
+---@param p2 vector The ending point of the capsule.
 ---@param radius? number The radius of the capsule.
 ---@param segments? number The number of circular segments to render.
 function Pass:capsule(p1, p2, radius, segments) end
@@ -5235,9 +3297,9 @@ function Pass:circle(x, y, z, radius, angle, ax, ay, az, style, angle1, angle2, 
 ---
 ---The local origin of the circle is in its center.  The local z axis is perpendicular to the circle.
 ---
----@param position Vec3 The position of the circle.
+---@param position vector The position of the circle.
 ---@param radius? number The radius of the circle.
----@param orientation Quat The orientation of the circle.
+---@param orientation quaternion The orientation of the circle.
 ---@param style? DrawStyle Whether the circle should be filled or outlined.
 ---@param angle1? number The angle of the beginning of the arc.
 ---@param angle2? number angle of the end of the arc.
@@ -5448,10 +3510,10 @@ function Pass:cone(x, y, z, radius, length, angle, ax, ay, az, segments) end
 ---
 ---The local origin is at the center of the base of the cone, and the negative z axis points towards the tip.
 ---
----@param position Vec3 The position of the center of the base of the cone.
+---@param position vector The position of the center of the base of the cone.
 ---@param radius? number The radius of the cone.
 ---@param length? number The length of the cone.
----@param orientation Quat The orientation of the cone.
+---@param orientation quaternion The orientation of the cone.
 ---@param segments? number The number of segments in the cone.
 function Pass:cone(position, radius, length, orientation, segments) end
 
@@ -5471,8 +3533,8 @@ function Pass:cone(transform, segments) end
 ---
 ---The local origin is at the center of the base of the cone, and the negative z axis points towards the tip.
 ---
----@param p1 Vec3 The position of the base of the cone.
----@param p2 Vec3 The position of the tip of the cone.
+---@param p1 vector The position of the base of the cone.
+---@param p2 vector The position of the tip of the cone.
 ---@param radius? number The radius of the cone.
 ---@param segments? number The number of segments in the cone.
 function Pass:cone(p1, p2, radius, segments) end
@@ -5500,9 +3562,9 @@ function Pass:cube(x, y, z, size, angle, ax, ay, az, style) end
 ---
 ---The local origin is in the center of the cube.
 ---
----@param position Vec3 The position of the cube.
+---@param position vector The position of the cube.
 ---@param size? number The size of the cube.
----@param orientation Quat The orientation of the cube.
+---@param orientation quaternion The orientation of the cube.
 ---@param style? DrawStyle Whether the cube should be drawn filled or outlined.
 function Pass:cube(position, size, orientation, style) end
 
@@ -5543,10 +3605,10 @@ function Pass:cylinder(x, y, z, radius, length, angle, ax, ay, az, capped, angle
 ---
 ---The local origin is in the center of the cylinder, and the length of the cylinder is along the z axis.
 ---
----@param position Vec3 The position of the center of the cylinder.
+---@param position vector The position of the center of the cylinder.
 ---@param radius? number The radius of the cylinder.
 ---@param length? number The length of the cylinder.
----@param orientation Quat The orientation of the cylinder.
+---@param orientation quaternion The orientation of the cylinder.
 ---@param capped? boolean Whether the tops and bottoms of the cylinder should be rendered.
 ---@param angle1? number The angle of the beginning of the arc.
 ---@param angle2? number angle of the end of the arc.
@@ -5572,8 +3634,8 @@ function Pass:cylinder(transform, capped, angle1, angle2, segments) end
 ---
 ---The local origin is in the center of the cylinder, and the length of the cylinder is along the z axis.
 ---
----@param p1 Vec3 The starting point of the cylinder.
----@param p2 Vec3 The ending point of the cylinder.
+---@param p1 vector The starting point of the cylinder.
+---@param p2 vector The ending point of the cylinder.
 ---@param radius? number The radius of the cylinder.
 ---@param capped? boolean Whether the tops and bottoms of the cylinder should be rendered.
 ---@param angle1? number The angle of the beginning of the arc.
@@ -5591,7 +3653,7 @@ function Pass:cylinder(p1, p2, radius, capped, angle1, angle2, segments) end
 ---
 ---When drawing a Texture, the plane will be 1 meter wide at 1.0 scale and the height will be adjusted based on the Texture's aspect ratio.
 ---
----@param object any The Model, Mesh, or Texture to draw.
+---@param object Model | Mesh | Texture The object to draw.
 ---@param x? number The x coordinate to draw the object at.
 ---@param y? number The y coordinate to draw the object at.
 ---@param z? number The z coordinate to draw the object at.
@@ -5613,10 +3675,10 @@ function Pass:draw(object, x, y, z, scale, angle, ax, ay, az, instances) end
 ---
 ---When drawing a Texture, the plane will be 1 meter wide at 1.0 scale and the height will be adjusted based on the Texture's aspect ratio.
 ---
----@param object any The Model, Mesh, or Texture to draw.
----@param position Vec3 The position to draw the object at.
----@param scale3 Vec3 The scale of the object, as a vector.
----@param orientation Quat The orientation of the object.
+---@param object Model | Mesh | Texture The object to draw.
+---@param position vector The position to draw the object at.
+---@param scale3 vector The scale of the object, as a vector.
+---@param orientation quaternion The orientation of the object.
 ---@param instances? number The number of instances to draw.
 function Pass:draw(object, position, scale3, orientation, instances) end
 
@@ -5630,10 +3692,187 @@ function Pass:draw(object, position, scale3, orientation, instances) end
 ---
 ---When drawing a Texture, the plane will be 1 meter wide at 1.0 scale and the height will be adjusted based on the Texture's aspect ratio.
 ---
----@param object any The Model, Mesh, or Texture to draw.
+---@param object Model | Mesh | Texture The object to draw.
 ---@param transform Mat4 The transform of the object.
 ---@param instances? number The number of instances to draw.
 function Pass:draw(object, transform, instances) end
+
+---Draws a single mesh or part of a mesh in a Model.
+---
+---Meshes in models can be split into multiple "parts", where each part has its own draw mode and material.  This function can draw a single one of these parts, or all of the parts in a single mesh.
+---
+---Drawing individual meshes or parts is useful because it allows for materials, graphics states, and shader uniforms to be changed in between each draw.
+---
+---#### Example:
+---
+---```lua
+---function lovr.draw(pass)
+---  for node, mesh in model:meshes() do
+---    local x, y, z, scale, _, _, angle, ax, ay, az = model:getNodeTransform(node)
+---
+---    for part = 1, model:getMeshPartCount(mesh) do
+---      pass:drawPart(model, mesh, part, x, y, z, scale, angle, ax, ay, az)
+---    end
+---  end
+---end
+---```
+---
+---@param model Model The Model to draw.
+---@param mesh number The index of the mesh to draw.
+---@param x? number The x coordinate to draw at.
+---@param y? number The y coordinate to draw at.
+---@param z? number The z coordinate to draw at.
+---@param scale? number The scale.
+---@param angle? number The rotation around the rotation axis, in radians.
+---@param ax? number The x component of the axis of rotation.
+---@param ay? number The y component of the axis of rotation.
+---@param az? number The z component of the axis of rotation.
+---@param instances? number The number of instances to draw.
+function Pass:drawPart(model, mesh, x, y, z, scale, angle, ax, ay, az, instances) end
+
+---Draws a single mesh or part of a mesh in a Model.
+---
+---Meshes in models can be split into multiple "parts", where each part has its own draw mode and material.  This function can draw a single one of these parts, or all of the parts in a single mesh.
+---
+---Drawing individual meshes or parts is useful because it allows for materials, graphics states, and shader uniforms to be changed in between each draw.
+---
+---#### Example:
+---
+---```lua
+---function lovr.draw(pass)
+---  for node, mesh in model:meshes() do
+---    local x, y, z, scale, _, _, angle, ax, ay, az = model:getNodeTransform(node)
+---
+---    for part = 1, model:getMeshPartCount(mesh) do
+---      pass:drawPart(model, mesh, part, x, y, z, scale, angle, ax, ay, az)
+---    end
+---  end
+---end
+---```
+---
+---@param model Model The Model to draw.
+---@param mesh number The index of the mesh to draw.
+---@param position vector The position to draw at.
+---@param scale3 vector The scale, as a vector.
+---@param orientation quaternion The orientation.
+---@param instances? number The number of instances to draw.
+function Pass:drawPart(model, mesh, position, scale3, orientation, instances) end
+
+---Draws a single mesh or part of a mesh in a Model.
+---
+---Meshes in models can be split into multiple "parts", where each part has its own draw mode and material.  This function can draw a single one of these parts, or all of the parts in a single mesh.
+---
+---Drawing individual meshes or parts is useful because it allows for materials, graphics states, and shader uniforms to be changed in between each draw.
+---
+---#### Example:
+---
+---```lua
+---function lovr.draw(pass)
+---  for node, mesh in model:meshes() do
+---    local x, y, z, scale, _, _, angle, ax, ay, az = model:getNodeTransform(node)
+---
+---    for part = 1, model:getMeshPartCount(mesh) do
+---      pass:drawPart(model, mesh, part, x, y, z, scale, angle, ax, ay, az)
+---    end
+---  end
+---end
+---```
+---
+---@param model Model The Model to draw.
+---@param mesh number The index of the mesh to draw.
+---@param transform Mat4 The transform.
+---@param instances? number The number of instances to draw.
+function Pass:drawPart(model, mesh, transform, instances) end
+
+---Draws a single mesh or part of a mesh in a Model.
+---
+---Meshes in models can be split into multiple "parts", where each part has its own draw mode and material.  This function can draw a single one of these parts, or all of the parts in a single mesh.
+---
+---Drawing individual meshes or parts is useful because it allows for materials, graphics states, and shader uniforms to be changed in between each draw.
+---
+---#### Example:
+---
+---```lua
+---function lovr.draw(pass)
+---  for node, mesh in model:meshes() do
+---    local x, y, z, scale, _, _, angle, ax, ay, az = model:getNodeTransform(node)
+---
+---    for part = 1, model:getMeshPartCount(mesh) do
+---      pass:drawPart(model, mesh, part, x, y, z, scale, angle, ax, ay, az)
+---    end
+---  end
+---end
+---```
+---
+---@param model Model The Model to draw.
+---@param mesh number The index of the mesh to draw.
+---@param part number The index of one of the parts in the mesh to draw.
+---@param x? number The x coordinate to draw at.
+---@param y? number The y coordinate to draw at.
+---@param z? number The z coordinate to draw at.
+---@param scale? number The scale.
+---@param angle? number The rotation around the rotation axis, in radians.
+---@param ax? number The x component of the axis of rotation.
+---@param ay? number The y component of the axis of rotation.
+---@param az? number The z component of the axis of rotation.
+---@param instances? number The number of instances to draw.
+function Pass:drawPart(model, mesh, part, x, y, z, scale, angle, ax, ay, az, instances) end
+
+---Draws a single mesh or part of a mesh in a Model.
+---
+---Meshes in models can be split into multiple "parts", where each part has its own draw mode and material.  This function can draw a single one of these parts, or all of the parts in a single mesh.
+---
+---Drawing individual meshes or parts is useful because it allows for materials, graphics states, and shader uniforms to be changed in between each draw.
+---
+---#### Example:
+---
+---```lua
+---function lovr.draw(pass)
+---  for node, mesh in model:meshes() do
+---    local x, y, z, scale, _, _, angle, ax, ay, az = model:getNodeTransform(node)
+---
+---    for part = 1, model:getMeshPartCount(mesh) do
+---      pass:drawPart(model, mesh, part, x, y, z, scale, angle, ax, ay, az)
+---    end
+---  end
+---end
+---```
+---
+---@param model Model The Model to draw.
+---@param mesh number The index of the mesh to draw.
+---@param part number The index of one of the parts in the mesh to draw.
+---@param position vector The position to draw at.
+---@param scale3 vector The scale, as a vector.
+---@param orientation quaternion The orientation.
+---@param instances? number The number of instances to draw.
+function Pass:drawPart(model, mesh, part, position, scale3, orientation, instances) end
+
+---Draws a single mesh or part of a mesh in a Model.
+---
+---Meshes in models can be split into multiple "parts", where each part has its own draw mode and material.  This function can draw a single one of these parts, or all of the parts in a single mesh.
+---
+---Drawing individual meshes or parts is useful because it allows for materials, graphics states, and shader uniforms to be changed in between each draw.
+---
+---#### Example:
+---
+---```lua
+---function lovr.draw(pass)
+---  for node, mesh in model:meshes() do
+---    local x, y, z, scale, _, _, angle, ax, ay, az = model:getNodeTransform(node)
+---
+---    for part = 1, model:getMeshPartCount(mesh) do
+---      pass:drawPart(model, mesh, part, x, y, z, scale, angle, ax, ay, az)
+---    end
+---  end
+---end
+---```
+---
+---@param model Model The Model to draw.
+---@param mesh number The index of the mesh to draw.
+---@param part number The index of one of the parts in the mesh to draw.
+---@param transform Mat4 The transform.
+---@param instances? number The number of instances to draw.
+function Pass:drawPart(model, mesh, part, transform, instances) end
 
 ---Draws a fullscreen triangle.  The `fill` shader is used, which stretches the triangle across the screen.
 ---
@@ -5759,11 +3998,6 @@ function Pass:getProjection(view) end
 ---@return Mat4 matrix The matrix containing the projection.
 function Pass:getProjection(view, matrix) end
 
----Returns the antialiasing setting of a render pass.
----
----@return number samples The number of samples used for rendering.  Currently, will be 1 or 4.
-function Pass:getSampleCount() end
-
 ---Returns statistics for the Pass.
 ---
 ---#### Example:
@@ -5791,16 +4025,6 @@ function Pass:getStats() end
 ---@return Buffer buffer The buffer.
 ---@return number offset An offset in the buffer where results will be written.
 function Pass:getTallyBuffer() end
-
----Returns the textures a render pass is rendering to.
----
----@return table target A table of the color textures targeted by the pass, with an additional `depth` key if the pass has a depth texture.
-function Pass:getTarget() end
-
----Returns the type of the pass (render, compute, or transfer).  The type restricts what kinds of functions can be called on the pass.
----
----@return PassType type The type of the Pass.
-function Pass:getType() end
 
 ---Returns the view count of a render pass.  This is the layer count of the textures it is rendering to.
 ---
@@ -5831,6 +4055,23 @@ function Pass:getViewPose(view) end
 ---@return Mat4 matrix The matrix containing the view pose.
 function Pass:getViewPose(view, matrix, invert) end
 
+---Returns a world space ray for a pixel in the Pass's canvas.  This is useful for interacting with objects with the mouse.  This uses the current pose and projection of the camera, previously set using `Pass:setViewPose` and `Pass:setProjection`.
+---
+---#### Notes:
+---
+---The upper-left of the canvas is located at `(0,0)`.
+---
+---@param x number The x coordinate of the pixel.
+---@param y number The y coordinate of the pixel.
+---@param view? number The view (camera) to get the ray for.
+---@return number x The x coordinate of the origin of the ray (on the near plane of the camera).
+---@return number y The y coordinate of the origin of the ray (on the near plane of the camera).
+---@return number z The z coordinate of the origin of the ray (on the near plane of the camera).
+---@return number dx The x component of the ray's direction (normalized).
+---@return number dy The y component of the ray's direction (normalized).
+---@return number dz The z component of the ray's direction (normalized).
+function Pass:getViewRay(x, y, view) end
+
 ---Returns the width of the textures of the Pass's canvas, in pixels.
 ---
 ---#### Notes:
@@ -5852,7 +4093,7 @@ function Pass:getWidth() end
 ---@param x2 number The x coordinate of the next point.
 ---@param y2 number The y coordinate of the next point.
 ---@param z2 number The z coordinate of the next point.
----@param ... any More points to add to the line.
+---@param ... number More points to add to the line.
 function Pass:line(x1, y1, z1, x2, y2, z2, ...) end
 
 ---Draws a line between points.  `Pass:mesh` can also be used to draw line segments using the `line` `DrawMode`.
@@ -5861,7 +4102,7 @@ function Pass:line(x1, y1, z1, x2, y2, z2, ...) end
 ---
 ---There is currently no way to increase line thickness.
 ---
----@param t table A table of numbers or `Vec3` objects (not a mix) representing points of the line.
+---@param t {number | vector} A table of numbers or vectors (not a mix) representing points of the line.
 function Pass:line(t) end
 
 ---Draws a line between points.  `Pass:mesh` can also be used to draw line segments using the `line` `DrawMode`.
@@ -5870,9 +4111,9 @@ function Pass:line(t) end
 ---
 ---There is currently no way to increase line thickness.
 ---
----@param v1 Vec3 A vector containing the position of the first point of the line.
----@param v2 Vec3 A vector containing the position of the next point on the line.
----@param ... any More points to add to the line.
+---@param v1 vector A vector containing the position of the first point of the line.
+---@param v2 vector A vector containing the position of the next point on the line.
+---@param ... vector More points to add to the line.
 function Pass:line(v1, v2, ...) end
 
 ---Draws a mesh.
@@ -5960,9 +4201,9 @@ function Pass:mesh(vertices, x, y, z, scale, angle, ax, ay, az, start, count, in
 ---```
 ---
 ---@param vertices? Buffer The buffer containing the vertices to draw.
----@param position Vec3 The position to draw the mesh at.
----@param scales Vec3 The scale of the mesh.
----@param orientation Quat The orientation of the mesh.
+---@param position vector The position to draw the mesh at.
+---@param scales vector The scale of the mesh.
+---@param orientation quaternion The orientation of the mesh.
 ---@param start? number The 1-based index of the first vertex to render from the vertex buffer (or the first index, when using an index buffer).
 ---@param count? number The number of vertices to render (or the number of indices, when using an index buffer). When `nil`, as many vertices or indices as possible will be drawn (based on the length of the Buffers and `start`).
 ---@param instances? number The number of copies of the mesh to render.
@@ -6098,9 +4339,9 @@ function Pass:mesh(vertices, indices, x, y, z, scale, angle, ax, ay, az, start, 
 ---
 ---@param vertices? Buffer The buffer containing the vertices to draw.
 ---@param indices Buffer The buffer containing the vertex indices to draw.
----@param position Vec3 The position to draw the mesh at.
----@param scales Vec3 The scale of the mesh.
----@param orientation Quat The orientation of the mesh.
+---@param position vector The position to draw the mesh at.
+---@param scales vector The scale of the mesh.
+---@param orientation quaternion The orientation of the mesh.
 ---@param start? number The 1-based index of the first vertex to render from the vertex buffer (or the first index, when using an index buffer).
 ---@param count? number The number of vertices to render (or the number of indices, when using an index buffer). When `nil`, as many vertices or indices as possible will be drawn (based on the length of the Buffers and `start`).
 ---@param instances? number The number of copies of the mesh to render.
@@ -6216,9 +4457,9 @@ function Pass:plane(x, y, z, width, height, angle, ax, ay, az, style, columns, r
 
 ---Draws a plane.
 ---
----@param position Vec3 The position of the plane.
----@param size Vec2 The size of the plane.
----@param orientation Quat The orientation of the plane.
+---@param position vector The position of the plane.
+---@param size vector The size of the plane.
+---@param orientation quaternion The orientation of the plane.
 ---@param style? DrawStyle Whether the plane should be drawn filled or outlined.
 ---@param columns? number The number of horizontal segments in the plane.
 ---@param rows? number The number of vertical segments in the plane.
@@ -6250,7 +4491,7 @@ function Pass:points(x, y, z, ...) end
 ---
 ---To change the size of points, set the `pointSize` shader flag in `lovr.graphics.newShader` or write to the `PointSize` variable in the vertex shader.  Points are always the same size on the screen, regardless of distance, and the units are in pixels.
 ---
----@param t table A table of numbers or Vec3 objects (not both) representing point positions.
+---@param t {number | vector} A table of numbers or vectors (not both) representing point positions.
 function Pass:points(t) end
 
 ---Draws points.  `Pass:mesh` can also be used to draw points using a `Buffer`.
@@ -6259,7 +4500,7 @@ function Pass:points(t) end
 ---
 ---To change the size of points, set the `pointSize` shader flag in `lovr.graphics.newShader` or write to the `PointSize` variable in the vertex shader.  Points are always the same size on the screen, regardless of distance, and the units are in pixels.
 ---
----@param v Vec3 A vector containing the position of the first point to draw.
+---@param v vector A vector containing the position of the first point to draw.
 ---@param ... any More points.
 function Pass:points(v, ...) end
 
@@ -6288,7 +4529,7 @@ function Pass:polygon(x1, y1, z1, x2, y2, z2, ...) end
 ---
 ---`Mesh` objects can also be used to draw arbitrary triangle meshes.
 ---
----@param t table A table of numbers or `Vec3` objects (not a mix) representing vertices of the polygon.
+---@param t {number | vector} A table of numbers or vectors (not a mix) representing vertices of the polygon.
 function Pass:polygon(t) end
 
 ---Draws a polygon.  The 3D vertices must be coplanar (all lie on the same plane), and the polygon must be convex (does not intersect itself or have any angles between vertices greater than 180 degrees), otherwise rendering artifacts may occur.
@@ -6299,8 +4540,8 @@ function Pass:polygon(t) end
 ---
 ---`Mesh` objects can also be used to draw arbitrary triangle meshes.
 ---
----@param v1 Vec3 A vector containing the position of the first vertex of the polygon.
----@param v2 Vec3 A vector containing the position of the next vertex on the polygon.
+---@param v1 vector A vector containing the position of the first vertex of the polygon.
+---@param v2 vector A vector containing the position of the next vertex on the polygon.
 ---@param ... any More vertices to add to the polygon.
 function Pass:polygon(v1, v2, ...) end
 
@@ -6346,7 +4587,7 @@ function Pass:rotate(angle, ax, ay, az) end
 
 ---Rotates the coordinate system.
 ---
----@param rotation Quat A quaternion containing the rotation to apply.
+---@param rotation quaternion A quaternion containing the rotation to apply.
 function Pass:rotate(rotation) end
 
 ---Draws a rounded rectangle.
@@ -6367,9 +4608,9 @@ function Pass:roundrect(x, y, z, width, height, thickness, angle, ax, ay, az, ra
 
 ---Draws a rounded rectangle.
 ---
----@param position Vec3 The position of the rectangle.
----@param size Vec3 The size of the rectangle (width, height, thickness).
----@param orientation Quat The orientation of the rectangle.
+---@param position vector The position of the rectangle.
+---@param size vector The size of the rectangle (width, height, thickness).
+---@param orientation quaternion The orientation of the rectangle.
 ---@param radius? number The radius of the rectangle corners.  If the radius is zero or negative, the rectangle will have sharp corners.
 ---@param segments? number The number of circular segments to use for each corner.  This increases the smoothness, but increases the number of vertices in the mesh.
 function Pass:roundrect(position, size, orientation, radius, segments) end
@@ -6390,7 +4631,7 @@ function Pass:scale(sx, sy, sz) end
 
 ---Scales the coordinate system.
 ---
----@param scale Vec3 The scale to apply.
+---@param scale vector The scale to apply.
 function Pass:scale(scale) end
 
 ---Sends a value to a variable in the Pass's active `Shader`.  The active shader is changed using `Pass:setShader`.
@@ -6566,6 +4807,8 @@ function Pass:setAlphaToCoverage(enable) end
 
 ---Sets the blend mode.  When a pixel is drawn, the blend mode controls how it is mixed with the color and alpha of the pixel underneath it.
 ---
+---See `Pass:setBlendState` for a lower-level alternative that allows for more control over the blending equation.
+---
 ---#### Notes:
 ---
 ---The default blend mode is `alpha` with the `alphamultiply` alpha mode.
@@ -6576,6 +4819,8 @@ function Pass:setBlendMode(blend, alphaBlend) end
 
 ---Sets the blend mode.  When a pixel is drawn, the blend mode controls how it is mixed with the color and alpha of the pixel underneath it.
 ---
+---See `Pass:setBlendState` for a lower-level alternative that allows for more control over the blending equation.
+---
 ---#### Notes:
 ---
 ---The default blend mode is `alpha` with the `alphamultiply` alpha mode.
@@ -6583,6 +4828,8 @@ function Pass:setBlendMode(blend, alphaBlend) end
 function Pass:setBlendMode() end
 
 ---Sets the blend mode.  When a pixel is drawn, the blend mode controls how it is mixed with the color and alpha of the pixel underneath it.
+---
+---See `Pass:setBlendState` for a lower-level alternative that allows for more control over the blending equation.
 ---
 ---#### Notes:
 ---
@@ -6595,12 +4842,83 @@ function Pass:setBlendMode(index, blend, alphaBlend) end
 
 ---Sets the blend mode.  When a pixel is drawn, the blend mode controls how it is mixed with the color and alpha of the pixel underneath it.
 ---
+---See `Pass:setBlendState` for a lower-level alternative that allows for more control over the blending equation.
+---
 ---#### Notes:
 ---
 ---The default blend mode is `alpha` with the `alphamultiply` alpha mode.
 ---
 ---@param index number The index of the canvas texture that will use the new blend mode.
 function Pass:setBlendMode(index) end
+
+---Sets the raw blend states.  This is a lower-level alternative to `Pass:setBlendMode`.  When a pixel is drawn, the blend state controls how it is mixed with the color and alpha of the pixel underneath it.
+---
+---#### Notes:
+---
+---[This tool](https://www.andersriggelsen.dk/glblendfunc.php) can help visualize blend states.
+---
+---@param op BlendOp The blend operation to use for color and alpha.
+---@param src BlendFactor The source factor to use for color and alpha.
+---@param dst BlendFactor The destination factor to use for color and alpha.
+function Pass:setBlendState(op, src, dst) end
+
+---Sets the raw blend states.  This is a lower-level alternative to `Pass:setBlendMode`.  When a pixel is drawn, the blend state controls how it is mixed with the color and alpha of the pixel underneath it.
+---
+---#### Notes:
+---
+---[This tool](https://www.andersriggelsen.dk/glblendfunc.php) can help visualize blend states.
+---
+---@param opColor BlendOp The blend operation to use for color.
+---@param opAlpha BlendOp The blend operation to use for alpha.
+---@param srcColor BlendFactor The source factor to use for color.
+---@param srcAlpha BlendFactor The source factor to use for alpha.
+---@param dstColor BlendFactor The destination factor to use for color.
+---@param dstAlpha BlendFactor The destination factor to use for alpha.
+function Pass:setBlendState(opColor, opAlpha, srcColor, srcAlpha, dstColor, dstAlpha) end
+
+---Sets the raw blend states.  This is a lower-level alternative to `Pass:setBlendMode`.  When a pixel is drawn, the blend state controls how it is mixed with the color and alpha of the pixel underneath it.
+---
+---#### Notes:
+---
+---[This tool](https://www.andersriggelsen.dk/glblendfunc.php) can help visualize blend states.
+---
+function Pass:setBlendState() end
+
+---Sets the raw blend states.  This is a lower-level alternative to `Pass:setBlendMode`.  When a pixel is drawn, the blend state controls how it is mixed with the color and alpha of the pixel underneath it.
+---
+---#### Notes:
+---
+---[This tool](https://www.andersriggelsen.dk/glblendfunc.php) can help visualize blend states.
+---
+---@param index number The index of the canvas texture that will use the new blend state.
+---@param op BlendOp The blend operation to use for color and alpha.
+---@param src BlendFactor The source factor to use for color and alpha.
+---@param dst BlendFactor The destination factor to use for color and alpha.
+function Pass:setBlendState(index, op, src, dst) end
+
+---Sets the raw blend states.  This is a lower-level alternative to `Pass:setBlendMode`.  When a pixel is drawn, the blend state controls how it is mixed with the color and alpha of the pixel underneath it.
+---
+---#### Notes:
+---
+---[This tool](https://www.andersriggelsen.dk/glblendfunc.php) can help visualize blend states.
+---
+---@param index number The index of the canvas texture that will use the new blend state.
+---@param opColor BlendOp The blend operation to use for color.
+---@param opAlpha BlendOp The blend operation to use for alpha.
+---@param srcColor BlendFactor The source factor to use for color.
+---@param srcAlpha BlendFactor The source factor to use for alpha.
+---@param dstColor BlendFactor The destination factor to use for color.
+---@param dstAlpha BlendFactor The destination factor to use for alpha.
+function Pass:setBlendState(index, opColor, opAlpha, srcColor, srcAlpha, dstColor, dstAlpha) end
+
+---Sets the raw blend states.  This is a lower-level alternative to `Pass:setBlendMode`.  When a pixel is drawn, the blend state controls how it is mixed with the color and alpha of the pixel underneath it.
+---
+---#### Notes:
+---
+---[This tool](https://www.andersriggelsen.dk/glblendfunc.php) can help visualize blend states.
+---
+---@param index number The index of the canvas texture that will use the new blend state.
+function Pass:setBlendState(index) end
 
 ---Sets the Pass's canvas.  The canvas is a set of textures that the Pass will draw to when it's submitted, along with configuration for the depth buffer and antialiasing.
 ---
@@ -6771,7 +5089,7 @@ function Pass:setColor(r, g, b, a) end
 ---
 ---The default color is `(1, 1, 1, 1)`.
 ---
----@param t table A table of 3 or 4 color components.
+---@param t {number} A table of 3 or 4 color components.
 function Pass:setColor(t) end
 
 ---Sets the color used for drawing.  Color components are from 0 to 1.
@@ -6835,6 +5153,7 @@ function Pass:setColorWrite(index, r, g, b, a) end
 ---By default, face culling is disabled.
 ---
 ---@param mode CullMode Whether `front` faces, `back` faces, or `none` of the faces should be culled.
+---@deprecated
 function Pass:setCullMode(mode) end
 
 ---Sets whether the front or back faces of triangles are culled.
@@ -6843,6 +5162,7 @@ function Pass:setCullMode(mode) end
 ---
 ---By default, face culling is disabled.
 ---
+---@deprecated
 function Pass:setCullMode() end
 
 ---Enables or disables depth clamp.  Normally, when pixels fall outside of the clipping planes, they are clipped (not rendered).  Depth clamp will instead render these pixels, clamping their depth on to the clipping planes.
@@ -6934,13 +5254,8 @@ function Pass:setFont(font) end
 
 ---Sets the material.  This will apply to most drawing, except for text, skyboxes, and models, which use their own materials.
 ---
----@param material Material The material to use for drawing.
+---@param material Texture | Material The texture or material to apply to surfaces.
 function Pass:setMaterial(material) end
-
----Sets the material.  This will apply to most drawing, except for text, skyboxes, and models, which use their own materials.
----
----@param texture Texture The texture to use as the material.
-function Pass:setMaterial(texture) end
 
 ---Sets the material.  This will apply to most drawing, except for text, skyboxes, and models, which use their own materials.
 ---
@@ -6955,61 +5270,186 @@ function Pass:setMaterial() end
 ---@param mode DrawMode The mesh mode to use.
 function Pass:setMeshMode(mode) end
 
----Sets the projection for a single view.  4 field of view angles can be used, similar to the field of view returned by `lovr.headset.getViewAngles`.  Alternatively, a projection matrix can be used for other types of projections like orthographic, oblique, etc.
+---Sets the camera projection.  This can set the projection for a single view by giving its index, otherwise the projection will be set for all views.  The number of views is determined by the number of array layers in the canvas textures.
 ---
----Up to 6 views are supported.  The Pass returned by `lovr.headset.getPass` will have its views automatically configured to match the headset.
+---The Pass returned by `lovr.headset.getPass` will have its views automatically configured to match the headset.
 ---
 ---#### Notes:
 ---
----A far clipping plane of 0.0 can be used for an infinite far plane with reversed Z range.  This is the default because it improves depth precision and reduces Z fighting.  Using a non-infinite far plane requires the depth buffer to be cleared to 1.0 instead of 0.0 and the default depth test to be changed to `lequal` instead of `gequal`.
----
 ---By default, the projection is set by the headset.  Each HMD has a specific field of view given by `lovr.headset.getViewAngles`, and the clipping planes can be customized with `lovr.headset.setClipDistance`.
 ---
----@param view number The index of the view to update.
----@param left number The left field of view angle, in radians.
----@param right number The right field of view angle, in radians.
----@param up number The top field of view angle, in radians.
----@param down number The bottom field of view angle, in radians.
----@param near? number The near clipping plane distance, in meters.
----@param far? number The far clipping plane distance, in meters.
-function Pass:setProjection(view, left, right, up, down, near, far) end
+---#### Example:
+---
+---```lua
+---function lovr.draw(pass)
+---  -- Orthographic/2D
+---  pass:setProjection('orthographic')
+---
+---  -- 90 degree perspective projection
+---  pass:setProjection('perspective', math.rad(90))
+---
+---  -- Asymmetric, for 1 view
+---  local fov = math.rad(60) / 2
+---  pass:setProjection(1, fov, fov, fov, fov, .1, 0)
+---
+---  -- Copying from headset
+---  for i = 1, lovr.headset.getViewCount() do
+---    local left, right, up, down = lovr.headset.getViewAngles(i)
+---    local near, far = lovr.headset.getClipDistance()
+---    pass:setProjection(i, left, right, up, down, near, far)
+---  end
+---end
+---```
+---
+---@param type ProjectionType The type of projection to set.
+---@param ... number Parameters for the projection.
+function Pass:setProjection(type, ...) end
 
----Sets the projection for a single view.  4 field of view angles can be used, similar to the field of view returned by `lovr.headset.getViewAngles`.  Alternatively, a projection matrix can be used for other types of projections like orthographic, oblique, etc.
+---Sets the camera projection.  This can set the projection for a single view by giving its index, otherwise the projection will be set for all views.  The number of views is determined by the number of array layers in the canvas textures.
 ---
----Up to 6 views are supported.  The Pass returned by `lovr.headset.getPass` will have its views automatically configured to match the headset.
+---The Pass returned by `lovr.headset.getPass` will have its views automatically configured to match the headset.
 ---
 ---#### Notes:
 ---
----A far clipping plane of 0.0 can be used for an infinite far plane with reversed Z range.  This is the default because it improves depth precision and reduces Z fighting.  Using a non-infinite far plane requires the depth buffer to be cleared to 1.0 instead of 0.0 and the default depth test to be changed to `lequal` instead of `gequal`.
+---By default, the projection is set by the headset.  Each HMD has a specific field of view given by `lovr.headset.getViewAngles`, and the clipping planes can be customized with `lovr.headset.setClipDistance`.
+---
+---#### Example:
+---
+---```lua
+---function lovr.draw(pass)
+---  -- Orthographic/2D
+---  pass:setProjection('orthographic')
+---
+---  -- 90 degree perspective projection
+---  pass:setProjection('perspective', math.rad(90))
+---
+---  -- Asymmetric, for 1 view
+---  local fov = math.rad(60) / 2
+---  pass:setProjection(1, fov, fov, fov, fov, .1, 0)
+---
+---  -- Copying from headset
+---  for i = 1, lovr.headset.getViewCount() do
+---    local left, right, up, down = lovr.headset.getViewAngles(i)
+---    local near, far = lovr.headset.getClipDistance()
+---    pass:setProjection(i, left, right, up, down, near, far)
+---  end
+---end
+---```
+---
+---@param matrix Mat4 The projection matrix.
+function Pass:setProjection(matrix) end
+
+---Sets the camera projection.  This can set the projection for a single view by giving its index, otherwise the projection will be set for all views.  The number of views is determined by the number of array layers in the canvas textures.
+---
+---The Pass returned by `lovr.headset.getPass` will have its views automatically configured to match the headset.
+---
+---#### Notes:
 ---
 ---By default, the projection is set by the headset.  Each HMD has a specific field of view given by `lovr.headset.getViewAngles`, and the clipping planes can be customized with `lovr.headset.setClipDistance`.
 ---
+---#### Example:
+---
+---```lua
+---function lovr.draw(pass)
+---  -- Orthographic/2D
+---  pass:setProjection('orthographic')
+---
+---  -- 90 degree perspective projection
+---  pass:setProjection('perspective', math.rad(90))
+---
+---  -- Asymmetric, for 1 view
+---  local fov = math.rad(60) / 2
+---  pass:setProjection(1, fov, fov, fov, fov, .1, 0)
+---
+---  -- Copying from headset
+---  for i = 1, lovr.headset.getViewCount() do
+---    local left, right, up, down = lovr.headset.getViewAngles(i)
+---    local near, far = lovr.headset.getClipDistance()
+---    pass:setProjection(i, left, right, up, down, near, far)
+---  end
+---end
+---```
+---
 ---@param view number The index of the view to update.
----@param matrix Mat4 The projection matrix for the view.
+---@param type ProjectionType The type of projection to set.
+---@param ... number Parameters for the projection.
+function Pass:setProjection(view, type, ...) end
+
+---Sets the camera projection.  This can set the projection for a single view by giving its index, otherwise the projection will be set for all views.  The number of views is determined by the number of array layers in the canvas textures.
+---
+---The Pass returned by `lovr.headset.getPass` will have its views automatically configured to match the headset.
+---
+---#### Notes:
+---
+---By default, the projection is set by the headset.  Each HMD has a specific field of view given by `lovr.headset.getViewAngles`, and the clipping planes can be customized with `lovr.headset.setClipDistance`.
+---
+---#### Example:
+---
+---```lua
+---function lovr.draw(pass)
+---  -- Orthographic/2D
+---  pass:setProjection('orthographic')
+---
+---  -- 90 degree perspective projection
+---  pass:setProjection('perspective', math.rad(90))
+---
+---  -- Asymmetric, for 1 view
+---  local fov = math.rad(60) / 2
+---  pass:setProjection(1, fov, fov, fov, fov, .1, 0)
+---
+---  -- Copying from headset
+---  for i = 1, lovr.headset.getViewCount() do
+---    local left, right, up, down = lovr.headset.getViewAngles(i)
+---    local near, far = lovr.headset.getClipDistance()
+---    pass:setProjection(i, left, right, up, down, near, far)
+---  end
+---end
+---```
+---
+---@param view number The index of the view to update.
+---@param matrix Mat4 The projection matrix.
 function Pass:setProjection(view, matrix) end
 
----Sets the default `Sampler` to use when sampling textures.  It is also possible to send a custom sampler to a shader using `Pass:send` and use that instead, which allows customizing the sampler on a per-texture basis.
+---Sets the camera projection.  This can set the projection for a single view by giving its index, otherwise the projection will be set for all views.  The number of views is determined by the number of array layers in the canvas textures.
+---
+---The Pass returned by `lovr.headset.getPass` will have its views automatically configured to match the headset.
 ---
 ---#### Notes:
 ---
----The `getPixel` shader helper function will use this sampler.
----
----When a Pass is reset, its sampler will be reset to `linear`.
----
----The sampler applies to all draws in the pass on submit, regardless of when the sampler is set.
+---By default, the projection is set by the headset.  Each HMD has a specific field of view given by `lovr.headset.getViewAngles`, and the clipping planes can be customized with `lovr.headset.setClipDistance`.
 ---
 ---#### Example:
 ---
 ---```lua
 ---function lovr.draw(pass)
----  pass:setSampler('nearest') -- activate minecraft mode
----  pass:setMaterial(rock)
----  pass:cube(x, y, z)
+---  -- Orthographic/2D
+---  pass:setProjection('orthographic')
+---
+---  -- 90 degree perspective projection
+---  pass:setProjection('perspective', math.rad(90))
+---
+---  -- Asymmetric, for 1 view
+---  local fov = math.rad(60) / 2
+---  pass:setProjection(1, fov, fov, fov, fov, .1, 0)
+---
+---  -- Copying from headset
+---  for i = 1, lovr.headset.getViewCount() do
+---    local left, right, up, down = lovr.headset.getViewAngles(i)
+---    local near, far = lovr.headset.getClipDistance()
+---    pass:setProjection(i, left, right, up, down, near, far)
+---  end
 ---end
 ---```
 ---
----@param filter? FilterMode The default filter mode to use when sampling textures (the `repeat` wrap mode will be used).
-function Pass:setSampler(filter) end
+---@param view number The index of the view to update.
+---@param left number The left field of view angle, in radians.  Positive values are to the left of the view center.
+---@param right number The right field of view angle, in radians.  Positive values are to the right of the view center.
+---@param up number The top field of view angle, in radians.  Positive values are above the view center.
+---@param down number The bottom field of view angle, in radians.  Positive values are below the view center.
+---@param near? number The near clipping plane distance, in meters.
+---@param far? number The far clipping plane distance, in meters.
+---@deprecated
+function Pass:setProjection(view, left, right, up, down, near, far) end
 
 ---Sets the default `Sampler` to use when sampling textures.  It is also possible to send a custom sampler to a shader using `Pass:send` and use that instead, which allows customizing the sampler on a per-texture basis.
 ---
@@ -7021,6 +5461,8 @@ function Pass:setSampler(filter) end
 ---
 ---The sampler applies to all draws in the pass on submit, regardless of when the sampler is set.
 ---
+---If you need different samplers for each draw, currently you have to send a `Sampler` object to a Shader (this is not ideal).
+---
 ---#### Example:
 ---
 ---```lua
@@ -7031,14 +5473,14 @@ function Pass:setSampler(filter) end
 ---end
 ---```
 ---
----@param sampler Sampler The default sampler shaders will use when reading from textures.
+---@param sampler? Sampler | FilterMode The Sampler shaders will use when reading from textures.  It can also be a `FilterMode`, for convenience (other sampler settings will use their defaults).
 function Pass:setSampler(sampler) end
 
 ---Sets the scissor rectangle.  Any pixels outside the scissor rectangle will not be drawn.
 ---
 ---#### Notes:
 ---
----`x` and `y` can not be negative.  `w` and `h` must be positive.
+---Negative `x` and `y` will be clamped to zero.  `w` and `h` must be positive, and will be clamped to the size of the canvas.
 ---
 ---By default, the scissor covers the entire canvas.
 ---
@@ -7052,13 +5494,13 @@ function Pass:setScissor(x, y, w, h) end
 ---
 ---#### Notes:
 ---
----`x` and `y` can not be negative.  `w` and `h` must be positive.
+---Negative `x` and `y` will be clamped to zero.  `w` and `h` must be positive, and will be clamped to the size of the canvas.
 ---
 ---By default, the scissor covers the entire canvas.
 ---
 function Pass:setScissor() end
 
----Sets the active shader.  In a render pass, the Shader will affect all drawing operations until it is changed again.  In a compute pass, the Shader will be run when `Pass:compute` is called.
+---Sets the active shader.  The Shader will affect all drawing operations until it is changed again.
 ---
 ---#### Notes:
 ---
@@ -7080,35 +5522,10 @@ function Pass:setScissor() end
 ---
 ---Uniform variables with basic types like `float`, `vec3`, `mat4`, etc. will have their data preserved as long as both shaders declare the variable with the same name and type.
 ---
----@param shader Shader The shader to use.
+---@param shader Shader | DefaultShader The shader to use.
 function Pass:setShader(shader) end
 
----Sets the active shader.  In a render pass, the Shader will affect all drawing operations until it is changed again.  In a compute pass, the Shader will be run when `Pass:compute` is called.
----
----#### Notes:
----
----Changing the shader will preserve variable values (the ones set using `Pass:send`) **unless** the new shader declares a variable with the same as one in the old shader, but a different type. The variable "type" means one of the following:
----
----- Uniform buffer (`uniform`).
----- Storage buffer (`buffer`).
----- Sampled texture, (`uniform texture<type>`).
----- Storage texture, (`uniform image<type>`).
----- Sampler (`uniform sampler`).
----
----If there's a clash in types, the variable will be reset to use a default resource:
----
----- Buffer variables do not have well-defined behavior when they are reset like this, and may
----  return random data or even crash the GPU.
----- Texture variable will use a default texture with a single white pixel.
----- Sampler variables will use a default sampler with a `linear` filter mode and `repeat` wrap
----  mode.
----
----Uniform variables with basic types like `float`, `vec3`, `mat4`, etc. will have their data preserved as long as both shaders declare the variable with the same name and type.
----
----@param default DefaultShader One of the default shaders to use.
-function Pass:setShader(default) end
-
----Sets the active shader.  In a render pass, the Shader will affect all drawing operations until it is changed again.  In a compute pass, the Shader will be run when `Pass:compute` is called.
+---Sets the active shader.  The Shader will affect all drawing operations until it is changed again.
 ---
 ---#### Notes:
 ---
@@ -7163,23 +5580,10 @@ function Pass:setStencilTest() end
 ---
 ---Setting the stencil test requires the `Pass` to have a depth texture with the `d24s8` or `d32fs8` format (the `s` means "stencil").  The `t.graphics.stencil` and `t.headset.stencil` flags in `lovr.conf` can be used to request a stencil format for the default window and headset passes, respectively.
 ---
----@param action StencilAction How pixels drawn will update the stencil buffer.
+---@param action StencilAction | {StencilAction} How pixels should update the stencil buffer when they are drawn.  Can also be a list of 3 stencil actions, used when a pixel fails the stencil test, fails the depth test, or passes the stencil test, respectively.
 ---@param value? number When using the 'replace' action, this is the value to replace with.
 ---@param mask? number An optional mask to apply to stencil values before writing.
 function Pass:setStencilWrite(action, value, mask) end
-
----Sets or disables stencil writes.  When stencil writes are enabled, any pixels drawn will update the values in the stencil buffer using the `StencilAction` set.
----
----#### Notes:
----
----By default, stencil writes are disabled.
----
----Setting the stencil test requires the `Pass` to have a depth texture with the `d24s8` or `d32fs8` format (the `s` means "stencil").  The `t.graphics.stencil` and `t.headset.stencil` flags in `lovr.conf` can be used to request a stencil format for the default window and headset passes, respectively.
----
----@param actions table A list of 3 stencil actions, used when a pixel fails the stencil test, fails the depth test, or passes the stencil test, respectively.
----@param value? number When using the 'replace' action, this is the value to replace with.
----@param mask? number An optional mask to apply to stencil values before writing.
-function Pass:setStencilWrite(actions, value, mask) end
 
 ---Sets or disables stencil writes.  When stencil writes are enabled, any pixels drawn will update the values in the stencil buffer using the `StencilAction` set.
 ---
@@ -7276,8 +5680,8 @@ function Pass:setViewPose(view, x, y, z, angle, ax, ay, az) end
 ---Up to 6 views are supported.  When rendering to the headset, views are changed to match the eye positions.  These view poses are also available using `lovr.headset.getViewPose`.
 ---
 ---@param view number The index of the view to update.
----@param position Vec3 The position of the viewer, in meters.
----@param orientation Quat The orientation of the viewer.
+---@param position vector The position of the viewer, in meters.
+---@param orientation quaternion The orientation of the viewer.
 function Pass:setViewPose(view, position, orientation) end
 
 ---Sets the pose for a single view.  Objects rendered in this view will appear as though the camera is positioned using the given pose.
@@ -7388,9 +5792,9 @@ function Pass:sphere(x, y, z, radius, angle, ax, ay, az, longitudes, latitudes) 
 ---
 ---The local origin of the sphere is in its center.
 ---
----@param position Vec3 The position of the sphere.
+---@param position vector The position of the sphere.
 ---@param radius? number The radius of the sphere.
----@param orientation Quat The orientation of the sphere.
+---@param orientation quaternion The orientation of the sphere.
 ---@param longitudes? number The number of "horizontal" segments.
 ---@param latitudes? number The number of "vertical" segments.
 function Pass:sphere(position, radius, orientation, longitudes, latitudes) end
@@ -7457,9 +5861,9 @@ function Pass:text(text, x, y, z, scale, angle, ax, ay, az, wrap, halign, valign
 ---This function can draw up to 16384 visible characters at a time, and will currently throw an error if the string is too long.
 ---
 ---@param text string The text to render.
----@param position Vec3 The position of the text.
+---@param position vector The position of the text.
 ---@param scale? number The scale of the text (with the default pixel density, units are meters).
----@param orientation Quat The orientation of the text.
+---@param orientation quaternion The orientation of the text.
 ---@param wrap? number The maximum width of each line in meters (before scale is applied).  When zero, the text will not wrap.
 ---@param halign? HorizontalAlign The horizontal alignment relative to the text origin.
 ---@param valign? VerticalAlign The vertical alignment relative to the text origin.
@@ -7508,7 +5912,7 @@ function Pass:text(text, transform, wrap, halign, valign) end
 ---
 ---This function can draw up to 16384 visible characters at a time, and will currently throw an error if the string is too long.
 ---
----@param colortext table A table of strings with colors to render, in the form `{ color1, string1, color2, string2 }`, where color is a `Vec3`, `Vec4`, hexcode, or table of numbers.
+---@param colortext table A table of multicolor strings to render.  Can be a flat table, like `{ color, string, color, string }`, or as nested pairs, like `{ { color, string }, { color, string } }`.  Colors can be given as tables, vectors, or hexcodes.
 ---@param x? number The x coordinate of the text origin.
 ---@param y? number The y coordinate of the text origin.
 ---@param z? number The z coordinate of the text origin.
@@ -7540,10 +5944,10 @@ function Pass:text(colortext, x, y, z, scale, angle, ax, ay, az, wrap, halign, v
 ---
 ---This function can draw up to 16384 visible characters at a time, and will currently throw an error if the string is too long.
 ---
----@param colortext table A table of strings with colors to render, in the form `{ color1, string1, color2, string2 }`, where color is a `Vec3`, `Vec4`, hexcode, or table of numbers.
----@param position Vec3 The position of the text.
+---@param colortext table A table of multicolor strings to render.  Can be a flat table, like `{ color, string, color, string }`, or as nested pairs, like `{ { color, string }, { color, string } }`.  Colors can be given as tables, vectors, or hexcodes.
+---@param position vector The position of the text.
 ---@param scale? number The scale of the text (with the default pixel density, units are meters).
----@param orientation Quat The orientation of the text.
+---@param orientation quaternion The orientation of the text.
 ---@param wrap? number The maximum width of each line in meters (before scale is applied).  When zero, the text will not wrap.
 ---@param halign? HorizontalAlign The horizontal alignment relative to the text origin.
 ---@param valign? VerticalAlign The vertical alignment relative to the text origin.
@@ -7567,7 +5971,7 @@ function Pass:text(colortext, position, scale, orientation, wrap, halign, valign
 ---
 ---This function can draw up to 16384 visible characters at a time, and will currently throw an error if the string is too long.
 ---
----@param colortext table A table of strings with colors to render, in the form `{ color1, string1, color2, string2 }`, where color is a `Vec3`, `Vec4`, hexcode, or table of numbers.
+---@param colortext table A table of multicolor strings to render.  Can be a flat table, like `{ color, string, color, string }`, or as nested pairs, like `{ { color, string }, { color, string } }`.  Colors can be given as tables, vectors, or hexcodes.
 ---@param transform Mat4 The transform of the text.
 ---@param wrap? number The maximum width of each line in meters (before scale is applied).  When zero, the text will not wrap.
 ---@param halign? HorizontalAlign The horizontal alignment relative to the text origin.
@@ -7599,9 +6003,9 @@ function Pass:torus(x, y, z, radius, thickness, angle, ax, ay, az, tsegments, ps
 ---
 ---The local origin is in the center of the torus, and the torus forms a circle around the local Z axis.
 ---
----@param position Vec3 The position of the center of the torus.
----@param scale Vec3 The size of the torus (x and y scale the radius, z is the thickness).
----@param orientation Quat The orientation of the torus.
+---@param position vector The position of the center of the torus.
+---@param scale vector The size of the torus (x and y scale the radius, z is the thickness).
+---@param orientation quaternion The orientation of the torus.
 ---@param tsegments? number The number of toroidal (circular) segments to render.
 ---@param psegments? number The number of poloidal (tubular) segments to render.
 function Pass:torus(position, scale, orientation, tsegments, psegments) end
@@ -7633,9 +6037,20 @@ function Pass:transform(x, y, z, sx, sy, sz, angle, ax, ay, az) end
 
 ---Transforms the coordinate system.
 ---
----@param translation Vec3 The translation to apply.
----@param scale Vec3 The scale to apply.
----@param rotation Quat A quaternion containing the rotation to apply.
+---@param x number The x component of the translation.
+---@param y number The y component of the translation.
+---@param z number The z component of the translation.
+---@param angle number The amount to rotate the coordinate system by, in radians.
+---@param ax number The x component of the axis of rotation.
+---@param ay number The y component of the axis of rotation.
+---@param az number The z component of the axis of rotation.
+function Pass:transform(x, y, z, angle, ax, ay, az) end
+
+---Transforms the coordinate system.
+---
+---@param translation vector The translation to apply.
+---@param scale vector The scale to apply.
+---@param rotation quaternion A quaternion containing the rotation to apply.
 function Pass:transform(translation, scale, rotation) end
 
 ---Transforms the coordinate system.
@@ -7660,8 +6075,193 @@ function Pass:translate(x, y, z) end
 ---
 ---Order matters when scaling, translating, and rotating the coordinate system.
 ---
----@param translation Vec3 The translation.
+---@param translation vector The translation.
 function Pass:translate(translation) end
+
+---Raytracers store the information needed to trace rays in shaders.  They are sometimes also called "acceleration structures".  Raytracing is useful for implementing lighting effects in shaders, like shadows and ambient occlusion.
+---
+---### Usage
+---
+---After creating a Raytracer with `lovr.graphics.newRaytracer`, add `Mesh` and `Model` objects to it with `Raytracer:add`.  After adding everything, call `Raytracer:build` to finalize everything.  Finally, send the Raytracer to a `Shader` with `Pass:send`.  The shader code can use the Raytracer to trace rays.
+---
+---Not all GPUs support raytracing.  Use `lovr.graphics.getFeatures` to check for the `raytracing` feature.
+---
+---### Objects
+---
+---To move objects after adding them, use the ID returned from `Raytracer:add` along with `Raytracer:set` to set a new transform for the object.  To remove an object, either set its scale to zero, set its layer mask to zero, or call `Raytracer:clear` to remove everything and rebuild the raytracer from scratch.
+---
+---Objects can be placed on up to 8 different layers when they are added to the raytracer.  When tracing rays in shaders, rays have a mask that controls which layers they can hit.
+---
+---Raytracers have a fixed capacity that must be declared upfront.  `Raytracer:add` will return `nil` instead of an ID if this capacity is exceeded.
+---
+---`Mesh` and `Model` have their own internal "mini raytracer".  The first time an object is added to a raytracer, LÖVR will create the mini raytracer and build it automatically.  However, if the vertices change after the object has been added to the raytracer, the raytracer needs to be rebuilt with `Mesh:buildRaytracer` or `Model:buildRaytracer` for the changes to take affect. Additionally, any `Raytracer` objects using those meshes/models need to be rebuilt as well.
+---@class Raytracer
+local Raytracer = {}
+
+---Adds a `Mesh` or `Model` to the Raytracer.
+---
+---The object has a custom transform, and exists on up to 8 layers, given as a bitmask.
+---
+---After adding all objects to the Raytracer, call `Raytracer:build` to finalize the raytracer.
+---
+---@param mesh Mesh The Mesh to add to the Raytracer.
+---@param x? number The x coordinate to place the object at.
+---@param y? number The y coordinate to place the object at.
+---@param z? number The z coordinate to place the object at.
+---@param scale? number The scale of the object.
+---@param angle? number The rotation of the object around its rotation axis, in radians.
+---@param ax? number The x component of the axis of rotation.
+---@param ay? number The y component of the axis of rotation.
+---@param az? number The z component of the axis of rotation.
+---@param layers? number A binary bitmask of 8 layers to place the object on.  The object is placed on all layers by default.  For example, 0x1 will place the object on the first layer, 0x2 will place it on the second layer, 0x3 for the first two layers, etc.
+---@param tag? number A custom tag for the object, provided in the shader when the object is hit.  Shaders can use this tag for whatever they want.  If nil, the tag will be set to the same ID as the one returned by this function. The tag can be between 0 and 16,777,215.
+---@return number id An ID for the object.  Use it to move the object layer using `Raytracer:set`.  If the Raytracer is full, the object is not added and this ID will be nil.
+function Raytracer:add(mesh, x, y, z, scale, angle, ax, ay, az, layers, tag) end
+
+---Adds a `Mesh` or `Model` to the Raytracer.
+---
+---The object has a custom transform, and exists on up to 8 layers, given as a bitmask.
+---
+---After adding all objects to the Raytracer, call `Raytracer:build` to finalize the raytracer.
+---
+---@param model Model The Model to add to the Raytracer.
+---@param x? number The x coordinate to place the object at.
+---@param y? number The y coordinate to place the object at.
+---@param z? number The z coordinate to place the object at.
+---@param scale? number The scale of the object.
+---@param angle? number The rotation of the object around its rotation axis, in radians.
+---@param ax? number The x component of the axis of rotation.
+---@param ay? number The y component of the axis of rotation.
+---@param az? number The z component of the axis of rotation.
+---@param layers? number A binary bitmask of 8 layers to place the object on.  The object is placed on all layers by default.  For example, 0x1 will place the object on the first layer, 0x2 will place it on the second layer, 0x3 for the first two layers, etc.
+---@param tag? number A custom tag for the object, provided in the shader when the object is hit.  Shaders can use this tag for whatever they want.  If nil, the tag will be set to the same ID as the one returned by this function. The tag can be between 0 and 16,777,215.
+---@return number id An ID for the object.  Use it to move the object layer using `Raytracer:set`.  If the Raytracer is full, the object is not added and this ID will be nil.
+function Raytracer:add(model, x, y, z, scale, angle, ax, ay, az, layers, tag) end
+
+---Adds a `Mesh` or `Model` to the Raytracer.
+---
+---The object has a custom transform, and exists on up to 8 layers, given as a bitmask.
+---
+---After adding all objects to the Raytracer, call `Raytracer:build` to finalize the raytracer.
+---
+---@param mesh Mesh The Mesh to add to the Raytracer.
+---@param position vector The position to place the object at.
+---@param scale3 vector The scale of the object.
+---@param orientation quaternion The orientation of the object.
+---@param layers? number A binary bitmask of 8 layers to place the object on.  The object is placed on all layers by default.  For example, 0x1 will place the object on the first layer, 0x2 will place it on the second layer, 0x3 for the first two layers, etc.
+---@param tag? number A custom tag for the object, provided in the shader when the object is hit.  Shaders can use this tag for whatever they want.  If nil, the tag will be set to the same ID as the one returned by this function. The tag can be between 0 and 16,777,215.
+---@return number id An ID for the object.  Use it to move the object layer using `Raytracer:set`.  If the Raytracer is full, the object is not added and this ID will be nil.
+function Raytracer:add(mesh, position, scale3, orientation, layers, tag) end
+
+---Adds a `Mesh` or `Model` to the Raytracer.
+---
+---The object has a custom transform, and exists on up to 8 layers, given as a bitmask.
+---
+---After adding all objects to the Raytracer, call `Raytracer:build` to finalize the raytracer.
+---
+---@param model Model The Model to add to the Raytracer.
+---@param position vector The position to place the object at.
+---@param scale3 vector The scale of the object.
+---@param orientation quaternion The orientation of the object.
+---@param layers? number A binary bitmask of 8 layers to place the object on.  The object is placed on all layers by default.  For example, 0x1 will place the object on the first layer, 0x2 will place it on the second layer, 0x3 for the first two layers, etc.
+---@param tag? number A custom tag for the object, provided in the shader when the object is hit.  Shaders can use this tag for whatever they want.  If nil, the tag will be set to the same ID as the one returned by this function. The tag can be between 0 and 16,777,215.
+---@return number id An ID for the object.  Use it to move the object layer using `Raytracer:set`.  If the Raytracer is full, the object is not added and this ID will be nil.
+function Raytracer:add(model, position, scale3, orientation, layers, tag) end
+
+---Adds a `Mesh` or `Model` to the Raytracer.
+---
+---The object has a custom transform, and exists on up to 8 layers, given as a bitmask.
+---
+---After adding all objects to the Raytracer, call `Raytracer:build` to finalize the raytracer.
+---
+---@param mesh Mesh The Mesh to add to the Raytracer.
+---@param transform Mat4 The transform of the object.
+---@param layers? number A binary bitmask of 8 layers to place the object on.  The object is placed on all layers by default.  For example, 0x1 will place the object on the first layer, 0x2 will place it on the second layer, 0x3 for the first two layers, etc.
+---@param tag? number A custom tag for the object, provided in the shader when the object is hit.  Shaders can use this tag for whatever they want.  If nil, the tag will be set to the same ID as the one returned by this function. The tag can be between 0 and 16,777,215.
+---@return number id An ID for the object.  Use it to move the object layer using `Raytracer:set`.  If the Raytracer is full, the object is not added and this ID will be nil.
+function Raytracer:add(mesh, transform, layers, tag) end
+
+---Adds a `Mesh` or `Model` to the Raytracer.
+---
+---The object has a custom transform, and exists on up to 8 layers, given as a bitmask.
+---
+---After adding all objects to the Raytracer, call `Raytracer:build` to finalize the raytracer.
+---
+---@param model Model The Model to add to the Raytracer.
+---@param transform Mat4 The transform of the object.
+---@param layers? number A binary bitmask of 8 layers to place the object on.  The object is placed on all layers by default.  For example, 0x1 will place the object on the first layer, 0x2 will place it on the second layer, 0x3 for the first two layers, etc.
+---@param tag? number A custom tag for the object, provided in the shader when the object is hit.  Shaders can use this tag for whatever they want.  If nil, the tag will be set to the same ID as the one returned by this function. The tag can be between 0 and 16,777,215.
+---@return number id An ID for the object.  Use it to move the object layer using `Raytracer:set`.  If the Raytracer is full, the object is not added and this ID will be nil.
+function Raytracer:add(model, transform, layers, tag) end
+
+---Builds the Raytracer, finalizing all the changes made by `Raytracer:add` and `Raytracer:set`.
+---
+function Raytracer:build() end
+
+---Removes everything from the Raytracer, setting its count back to zero
+---
+---#### Notes:
+---
+---This does not rebuild the raytracer.
+---
+function Raytracer:clear() end
+
+---Returns the capacity of the Raytracer, or the number of objects it can hold.  The capacity is declared when the raytracer is created, and can not be changed afterwards.
+---
+---#### Notes:
+---
+---`Raytracer:add` returns nil if the Raytracer is full.
+---
+---@return number capacity The capacity of the raytracer.
+function Raytracer:getCapacity() end
+
+---Returns the number of objects in the Raytracer.
+---
+---#### Notes:
+---
+---`Raytracer:add` returns nil if the Raytracer is full.
+---
+---@return number count The number of objects in the Raytracer.
+function Raytracer:getCount() end
+
+---Moves a `Mesh` or `Model` to the Raytracer, using an ID previously returned by `Raytracer:add`. This function can also change the layer mask and tag of the object.
+---
+---After adding and moving objects, call `Raytracer:build` to finalize the raytracer.
+---
+---@param id number The ID of the object to change.
+---@param x? number The x coordinate to place the object at.
+---@param y? number The y coordinate to place the object at.
+---@param z? number The z coordinate to place the object at.
+---@param scale? number The scale of the object.
+---@param angle? number The rotation of the object around its rotation axis, in radians.
+---@param ax? number The x component of the axis of rotation.
+---@param ay? number The y component of the axis of rotation.
+---@param az? number The z component of the axis of rotation.
+---@param layers? number The new layer mask for the object, or nil to leave it unchanged.
+---@param tag? number The new tag for the object, or nil to leave it unchanged.
+function Raytracer:set(id, x, y, z, scale, angle, ax, ay, az, layers, tag) end
+
+---Moves a `Mesh` or `Model` to the Raytracer, using an ID previously returned by `Raytracer:add`. This function can also change the layer mask and tag of the object.
+---
+---After adding and moving objects, call `Raytracer:build` to finalize the raytracer.
+---
+---@param id number The ID of the object to change.
+---@param position vector The position to place the object at.
+---@param scale3 vector The scale of the object.
+---@param orientation quaternion The orientation of the object.
+---@param layers? number The new layer mask for the object, or nil to leave it unchanged.
+---@param tag? number The new tag for the object, or nil to leave it unchanged.
+function Raytracer:set(id, position, scale3, orientation, layers, tag) end
+
+---Moves a `Mesh` or `Model` to the Raytracer, using an ID previously returned by `Raytracer:add`. This function can also change the layer mask and tag of the object.
+---
+---After adding and moving objects, call `Raytracer:build` to finalize the raytracer.
+---
+---@param id number The ID of the object to change.
+---@param transform Mat4 The transform of the object.
+---@param layers? number The new layer mask for the object, or nil to leave it unchanged.
+---@param tag? number The new tag for the object, or nil to leave it unchanged.
+function Raytracer:set(id, transform, layers, tag) end
 
 ---Readbacks track the progress of an asynchronous read of a `Buffer` or `Texture`.  The Readback can be polled for completion or the CPU with `Readback:isComplete`, or you can wait for it to finish using `Readback:wait`.
 ---@class Readback
@@ -7760,10 +6360,9 @@ local Shader = {}
 
 ---Clones a shader.  This creates an inexpensive copy of it with different flags.  It can be used to create several variants of a shader with different behavior.
 ---
----@param source Shader The Shader to clone.
----@param flags table The flags used by the clone.
+---@param flags table A table of shader flags.  The keys of the table should be flag names or flag ID numbers. The values can be numbers or booleans, depending on the type of the flag as declared in the shader.  The clones set here will override any set in the parent shader.  See `ShaderFlag` for the set of builtin shader flags.
 ---@return Shader shader The new Shader.
-function Shader:clone(source, flags) end
+function Shader:clone(flags) end
 
 ---Returns the format of a buffer declared in shader code.  The return type matches the same syntax used by `lovr.graphics.newBuffer` and `Buffer:getFormat`, so it can be used to quickly create a Buffer that matches a variable from a Shader.
 ---
@@ -7947,6 +6546,8 @@ local Texture = {}
 ---
 ---The clear color will be interpreted as a linear color for sRGB formats.
 ---
+---When clearing a 3D texture, the `layer` and `layerCount` arguments are ignored, and all of the layers in a mipmap level will be cleared.
+---
 function Texture:clear() end
 
 ---Clears layers and mipmaps in a texture to a given color.
@@ -7958,6 +6559,8 @@ function Texture:clear() end
 ---The texture must have been created with the `transfer` usage to clear it.
 ---
 ---The clear color will be interpreted as a linear color for sRGB formats.
+---
+---When clearing a 3D texture, the `layer` and `layerCount` arguments are ignored, and all of the layers in a mipmap level will be cleared.
 ---
 ---@param hex number The hexcode color to clear to.
 ---@param layer? number The index of the first layer to clear.
@@ -7975,6 +6578,8 @@ function Texture:clear(hex, layer, layerCount, mipmap, mipmapCount) end
 ---The texture must have been created with the `transfer` usage to clear it.
 ---
 ---The clear color will be interpreted as a linear color for sRGB formats.
+---
+---When clearing a 3D texture, the `layer` and `layerCount` arguments are ignored, and all of the layers in a mipmap level will be cleared.
 ---
 ---@param r number The red component of the clear color.
 ---@param g number The green component of the clear color.
@@ -7996,7 +6601,9 @@ function Texture:clear(r, g, b, a, layer, layerCount, mipmap, mipmapCount) end
 ---
 ---The clear color will be interpreted as a linear color for sRGB formats.
 ---
----@param t table A table with color components.
+---When clearing a 3D texture, the `layer` and `layerCount` arguments are ignored, and all of the layers in a mipmap level will be cleared.
+---
+---@param t {number} A table with color components.
 ---@param layer? number The index of the first layer to clear.
 ---@param layerCount? number The number of layers to clear.  If nil, clears the rest of the layers.
 ---@param mipmap? number The index of the first mipmap to clear.
@@ -8013,29 +6620,14 @@ function Texture:clear(t, layer, layerCount, mipmap, mipmapCount) end
 ---
 ---The clear color will be interpreted as a linear color for sRGB formats.
 ---
----@param v3 Vec3 A vec3 with the clear color.
+---When clearing a 3D texture, the `layer` and `layerCount` arguments are ignored, and all of the layers in a mipmap level will be cleared.
+---
+---@param v vector A vector with the clear color (alpha will be 1).
 ---@param layer? number The index of the first layer to clear.
 ---@param layerCount? number The number of layers to clear.  If nil, clears the rest of the layers.
 ---@param mipmap? number The index of the first mipmap to clear.
 ---@param mipmapCount? number The number of mipmaps to clear.  If nil, clears the rest of the mipmaps.
-function Texture:clear(v3, layer, layerCount, mipmap, mipmapCount) end
-
----Clears layers and mipmaps in a texture to a given color.
----
----When a Texture is being used as a canvas for a `Pass`, the clear color can be set with `Pass:setClear`, which a more efficient way to clear the texture before rendering.
----
----#### Notes:
----
----The texture must have been created with the `transfer` usage to clear it.
----
----The clear color will be interpreted as a linear color for sRGB formats.
----
----@param v4 Vec4 A vec4 with the clear color.
----@param layer? number The index of the first layer to clear.
----@param layerCount? number The number of layers to clear.  If nil, clears the rest of the layers.
----@param mipmap? number The index of the first mipmap to clear.
----@param mipmapCount? number The number of mipmaps to clear.  If nil, clears the rest of the mipmaps.
-function Texture:clear(v4, layer, layerCount, mipmap, mipmapCount) end
+function Texture:clear(v, layer, layerCount, mipmap, mipmapCount) end
 
 ---Regenerates mipmap levels of a texture.  This downscales pixels from the texture to progressively smaller sizes and saves them.  If the texture is drawn at a smaller scale later, the mipmaps are used, which smooths out the appearance and improves performance.
 ---
@@ -8213,15 +6805,14 @@ function Texture:newReadback(x, y, layer, mipmap, width, height) end
 ---
 ---Images can't be copied to multisample textures.  Multisample textures can be copied between each other as long as there isn't any scaling.
 ---
----Copying between textures requires them to have the same format.
+---If either texture has a depth format, then both textures must have the same format.
 ---
 ---When using different region sizes in a texture-to-texture copy:
 ---
 ---- It is not possible to mix 3D with non-3D textures.
 ---- Not every texture format is supported, use `lovr.graphics.isFormatSupported` to check.
----- The formats do not need to match, unless they're depth formats.
 ---
----@param image Image The image to copy to the texture.
+---@param source Texture | Image The source texture or image to copy to this texture.
 ---@param dstx? number The x offset to copy to.
 ---@param dsty? number The y offset to copy to.
 ---@param dstlayer? number The index of the layer to copy to.
@@ -8234,7 +6825,7 @@ function Texture:newReadback(x, y, layer, mipmap, width, height) end
 ---@param height? number The height of the region of pixels to copy.  If nil, the maximum possible height will be used, based on the heights of the source/destination and the offset parameters.
 ---@param layers? number The number of layers to copy.  If nil, copies as many layers as possible.
 function Texture:setPixels(
-	image,
+	source,
 	dstx,
 	dsty,
 	dstlayer,
@@ -8246,60 +6837,6 @@ function Texture:setPixels(
 	width,
 	height,
 	layers
-)
-end
-
----Sets pixels in the texture.  The source data can be an `Image` with the pixels to upload, or another `Texture` object to copy from.
----
----#### Notes:
----
----Note that calling `Texture:setPixels(Image)` will only update the first mipmap of the texture, leaving the other mipmaps as-is.  You may want to regenerate the texture's mipmaps afterwards by calling `Texture:generateMipmaps`, or disable mipmaps entirely by setting `mipmaps` to false in `lovr.graphics.newTexture`.
----
----The destination and source textures must have been created with the `transfer` usage.
----
----Images can't be copied to multisample textures.  Multisample textures can be copied between each other as long as there isn't any scaling.
----
----Copying between textures requires them to have the same format.
----
----When using different region sizes in a texture-to-texture copy:
----
----- It is not possible to mix 3D with non-3D textures.
----- Not every texture format is supported, use `lovr.graphics.isFormatSupported` to check.
----- The formats do not need to match, unless they're depth formats.
----
----@param texture Texture The texture to copy from.
----@param dstx? number The x offset to copy to.
----@param dsty? number The y offset to copy to.
----@param dstlayer? number The index of the layer to copy to.
----@param dstmipmap? number The index of the mipmap level to copy to.
----@param srcx? number The x offset to copy from.
----@param srcy? number The y offset to copy from.
----@param srclayer? number The index of the layer to copy from.
----@param srcmipmap? number The index of the mipmap level to copy from.
----@param width? number The width of the region of pixels to copy.  If nil, the maximum possible width will be used, based on the widths of the source/destination and the offset parameters.
----@param height? number The height of the region of pixels to copy.  If nil, the maximum possible height will be used, based on the heights of the source/destination and the offset parameters.
----@param layers? number The number of layers to copy.  If nil, copies as many layers as possible.
----@param srcwidth? number The width of the region in the source texture to copy.  If it doesn't match `width`, the copy will be scaled up or down to fit.
----@param srcheight? number The height of the region in the source texture to copy.  If it doesn't match `height`, the copy will be scaled up or down to fit.
----@param srcdepth? number The depth of the region in the source texture to copy (`3d` textures only).
----@param filter? FilterMode The filtering mode used to scale the copy when the source and destination sizes don't match.
-function Texture:setPixels(
-	texture,
-	dstx,
-	dsty,
-	dstlayer,
-	dstmipmap,
-	srcx,
-	srcy,
-	srclayer,
-	srcmipmap,
-	width,
-	height,
-	layers,
-	srcwidth,
-	srcheight,
-	srcdepth,
-	filter
 )
 end
 
@@ -8354,6 +6891,31 @@ function Texture:setSampler() end
 ---Color channel values are not multiplied by the alpha.  Instead, it's assumed that the colors have already been multiplied by the alpha.  This should be used if the pixels being drawn have already been blended, or "pre-multiplied".
 ---| "premultiplied"
 
+---Different blend factors used by `Pass:setBlendState` to control the source and destination factors used for blending.
+---@alias BlendFactor
+---Zero.
+---| "zero"
+---One.
+---| "one"
+---Source color.
+---| "srccolor"
+---One minus the source color.
+---| "oneminussrccolor"
+---Source alpha.
+---| "srcalpha"
+---One minus the source alpha.
+---| "oneminussrcalpha"
+---Destination color.
+---| "dstcolor"
+---One minus the destination color.
+---| "oneminusdstcolor"
+---Destination alpha.
+---| "dstalpha"
+---One minus the destination alpha.
+---| "oneminusdstalpha"
+---min(srcalpha, oneminusdstalpha)
+---| "srcalphasaturated"
+
 ---Different ways pixels can blend with the pixels behind them.
 ---@alias BlendMode
 ---Colors will be mixed based on alpha.
@@ -8370,6 +6932,21 @@ function Texture:setSampler() end
 ---| "darken"
 ---The opposite of multiply: the pixel colors are inverted, multiplied, and inverted again, producing a lightening effect.
 ---| "screen"
+---The incoming colors will replace the existing colors.  This is the same as using a blend mode of `nil`.
+---| "none"
+
+---Different blend operations used by `Pass:setBlendState` to control how the source and destination factors are combined.
+---@alias BlendOp
+---Adds the two factors together.
+---| "add"
+---Subtracts the destination from the source.
+---| "subtract"
+---Subtracts the source from the destination.
+---| "reversesubtract"
+---Takes the minimum of the two factors.
+---| "min"
+---Takes the maximum of the two factors.
+---| "max"
 
 ---The method used to compare depth and stencil values when performing the depth and stencil tests. Also used for compare modes in `Sampler`s.
 ---@alias CompareMode
@@ -8537,6 +7114,10 @@ function Texture:setSampler() end
 ---| "nearest"
 ---A smooth appearance where neighboring pixels are averaged.
 ---| "linear"
+---An even smoother appearance, but slower and typically only available on mobile GPUs. Use `lovr.graphics.isFormatSupported('format', 'cubic')` to check for support for a specific format, or `lovr.graphics.getFeatures().cubic` to see if cubic filtering is supported at all.
+---
+---Note that this can only be used for `min` and `mag` options in sampler.  Trying to use this for the `mip` filter mode will silently fall back to `linear`.
+---| "cubic"
 
 ---Different ways to horizontally align text with `Pass:text`.
 ---@alias HorizontalAlign
@@ -8561,14 +7142,51 @@ function Texture:setSampler() end
 ---Transforms are relative to the parent of the node.
 ---| "parent"
 
----The three different types of `Pass` objects.  Each Pass has a single type, which determines the type of work it does and which functions can be called on it.
----@alias PassType
----A render pass renders graphics to a set of up to four color textures and an optional depth texture.  The textures all need to have the same dimensions and sample counts.  The textures can have multiple layers, and all rendering work will be broadcast to each layer.  Each layer can use a different camera pose, which is used for stereo rendering.
----| "render"
----A compute pass runs compute shaders.  Compute passes usually only call `Pass:setShader`, `Pass:send`, and `Pass:compute`.  All of the compute work in a single compute pass is run in parallel, so multiple compute passes should be used if one compute pass needs to happen after a different one.
----| "compute"
----A transfer pass copies data to and from GPU memory in `Buffer` and `Texture` objects. Transfer passes use `Pass:copy`, `Pass:clear`, `Pass:blit`, `Pass:mipmap`, and `Pass:read`. Similar to compute passes, all the work in a transfer pass happens in parallel, so multiple passes should be used if the transfers need to be ordered.
----| "transfer"
+---The different projection types for `Pass:setProjection`.
+---@alias ProjectionType
+---A 2D orthographic projection given by 6 numbers: left, right, bottom, top, near, far. Left/right default to 0 and the width of the canvas.  Bottom/top default to 0 and the height of the canvas.  Near and far default to -1 and 1.  All of the numbers can be left off to set an orthographic projection with 0,0 in the upper-left corner and units in pixels.
+---| "orthographic"
+---A 3D perspective projection given by 4 numbers: fovy, aspect, near, far.  Fovy is in radians and defaults to 90 degrees.  The aspect ratio is width/height and defaults to the aspect ratio of the canvas.  Near and far default to .01 and 0.
+---| "perspective"
+---An asymmetric perspective projection given by 6 numbers: left, right, up, down, near, far. This is meant to be used with `lovr.headset.getViewAngles`.  All of the angles are in radians, and are usually positive.  Near and far default to .01 and 0.
+---| "asymmetric"
+---16 numbers for a raw projection matrix, in column-major order.
+---| "matrix"
+
+---Built-in shader flags.  Shaders can use both user-created specialization constants (or simply "flags") alongside the following built-in ones.
+---@alias ShaderFlag
+---The point size when drawing points with e.g. `Pass:points`, in pixels.
+---| "pointSize"
+---Multiply the pass color (`Pass:setColor`) into the `Color` variable sent to the fragment shader.
+---| "passColor"
+---Multiply the material color (`Pass:setMaterial`) into the `Color` variable sent to the fragment shader.
+---| "materialColor"
+---Multiply the vertex color (from the `VertexColor` attribute) into the `Color` variable sent to the fragment shader.
+---| "vertexColors"
+---Apply the UV transform from the material to the `VertexUV` attribute.
+---| "uvTransform"
+---Enable alpha cutoff.  When enabled, pixels will be discarded if their alpha is less than the `alphaCutoff` value of the material.
+---| "alphaCutoff"
+---Enable glow.  When enabled, the Material\'s `glowTexture` and `glow` property will get added to the color of the pixel returned by `lovrmain`.  This is also called an "emissive" texture and is used for parts of an object that give off light, like an LED screen or the headlights on a car.
+---| "glow"
+---Use the normal map texture in the material to affect the normal direction of surfaces.  This only affects the `normal` variable in the `Surface` struct.
+---| "normalMap"
+---Use the vertex tangents of the model for normal mapping.  When this is `false`, tangents will be computed in the fragment shader from the vertex positions, UVs, and normal vector.
+---| "vertexTangents"
+---Use the color texture of the material.  If this is `false`, the color will only be derived from the `Color` variable (pass color, material color, vertex color), and the color texture will be ignored.
+---| "colorTexture"
+---Sample the `glowTexture` of the material when applying glow.  Note that glow is only active when the `glow` flag is also enabled.  If this is false, then materials will give off a constant glow using their `glow` property, and the glow texture is ignored.
+---| "glowTexture"
+---Sample the blue channel of the material's metalness texture when computing the metalness value of a `Surface`. When false, the surface will have a constant metalness based on the material's `metalness` property, instead of using a texture.
+---| "metalnessTexture"
+---Sample the green channel of the material's roughness texture when computing the roughness value of a `Surface`. When false, the surface will have a constant roughness based on the material's `roughness` property, instead of using a texture.
+---| "roughnessTexture"
+---Sample the red channel of the `occlusionTexture` of the material to compute the occlusion property of a `Surface`.  When false, the occlusion will be `1.0` (no occlusion).
+---| "ambientOcclusion"
+---Sample the red channel of the material's `clearcoatTexture` to compute the `clearcoat` property of a `Surface`.  When false, only the `clearcoat` property of the material will be used, and the texture will be ignored.
+---| "clearcoatTexture"
+---Apply ACES tonemapping to the final color output.  This will compress color channel values down to the 0-1 range while attempting to preserve detail in highlights and shadows.
+---| "tonemap"
 
 ---Different shader stages.  Graphics shaders have a `vertex` and `fragment` stage, and compute shaders have a single `compute` stage.
 ---@alias ShaderStage
@@ -8622,6 +7240,8 @@ function Texture:setSampler() end
 ---| "storage"
 ---The Texture can be used with `Pass:blit` and `Pass:generateMipmaps`.
 ---| "blit"
+---The Texture can be used with a sampler that uses a `cubic` filter mode.  See `FilterMode`.
+---| "cubic"
 
 ---Different types of textures.  Textures are multidimensional blocks of GPU memory, and the texture's type determines how many dimensions there are, and adds some semantics about what the 3rd dimension means.
 ---@alias TextureType

@@ -9,13 +9,18 @@ lovr.system = {}
 
 ---Returns the clipboard text.
 ---
----@return string text The clipboard text (may be nil).
+---@return string | nil text The clipboard text.
 function lovr.system.getClipboardText() end
 
 ---Returns the number of logical cores on the system.
 ---
 ---@return number cores The number of logical cores on the system.
 function lovr.system.getCoreCount() end
+
+---Returns the current mouse mode.
+---
+---@return MouseMode mode The current mouse mode.
+function lovr.system.getMouseMode() end
 
 ---Returns the position of the mouse.
 ---
@@ -97,6 +102,11 @@ function lovr.system.isMouseDown(button) end
 ---@return boolean focused Whether the desktop window is focused.
 function lovr.system.isWindowFocused() end
 
+---Returns whether the desktop window is fullscreen.
+---
+---@return boolean fullscreen Whether the desktop window is currently fullscreen.
+function lovr.system.isWindowFullscreen() end
+
 ---Returns whether the desktop window is open.  `t.window` can be set to `nil` in `lovr.conf` to disable automatic opening of the window.  In this case, the window can be opened manually using `lovr.system.openWindow`.
 ---
 ---@return boolean open Whether the desktop window is open.
@@ -118,7 +128,12 @@ function lovr.system.openWindow(options) end
 
 ---Fills the event queue with unprocessed events from the operating system.  This function should be called often, otherwise the operating system will consider the application unresponsive. This function is called in the default implementation of `lovr.run`, and the events are later processed by `lovr.event.poll`.
 ---
-function lovr.system.pollEvents() end
+---#### Notes:
+---
+---When using a timeout, this function will only return upon receiving a *window* event.  Other events like `filechanged`, `threaderror`, or events from `lovr.headset` will **not** wake up!
+---
+---@param timeout? number How long to wait for an event to arrive, in seconds.  Use a negative value or `math.huge` for an infinite timeout, sleeping until an event arrives.  This is useful for an interface that only needs to re-render after a user input event occurs.
+function lovr.system.pollEvents(timeout) end
 
 ---Requests permission to use a feature.  Usually this will pop up a dialog box that the user needs to confirm.  Once the permission request has been acknowledged, the `lovr.permission` callback will be called with the result.  Currently, this is only used for requesting microphone access on Android devices.
 ---
@@ -138,6 +153,20 @@ function lovr.system.setClipboardText(text) end
 ---
 ---@param enable boolean Whether key repeat should be enabled.
 function lovr.system.setKeyRepeat(enable) end
+
+---Sets the mouse mode.
+---
+---@param mode MouseMode The new mouse mode.
+function lovr.system.setMouseMode(mode) end
+
+---Enables or disables fullscreen on the desktop window.
+---
+---Note that only borderless fullscreen is supported.
+---
+---To make the window fullscreen at startup, set `t.window.fullscreen` in `lovr.conf`.
+---
+---@param fullscreen boolean Whether the desktop window should be fullscreen.
+function lovr.system.setWindowFullscreen(fullscreen) end
 
 ---Returns whether a key on the keyboard was pressed this frame.
 ---
@@ -178,6 +207,13 @@ function lovr.system.wasMousePressed(button) end
 ---@param button number The index of a button to check.  Use 1 for the primary mouse button, 2 for the secondary button, and 3 for the middle button.  Other indices can be used, but are hardware-specific.
 ---@return boolean released Whether the mouse button was released this frame.
 function lovr.system.wasMouseReleased(button) end
+
+---The different mouse modes that can be set with `lovr.system.setMouseMode`.
+---@alias MouseMode
+---Normal mouse movement.
+---| "normal"
+---Relative mouse movement.  The mouse will be hidden and stop moving, but `lovr.mousemoved` will still be called to report relative motion deltas.
+---| "relative"
 
 ---These are the different permissions that need to be requested using `lovr.system.requestPermission` on some platforms.
 ---@alias Permission

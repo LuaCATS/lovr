@@ -5,6 +5,15 @@
 ---@class lovr.data
 lovr.data = {}
 
+---Creates a new AudioStream.
+---
+---@param capacity number The capacity of the audio stream, in frames.
+---@param format? SampleFormat The format of the audio stream.
+---@param channels number The number of channels in the audio stream.
+---@param rate? number The sample rate of the audio stream, in Hz.
+---@return AudioStream stream The new AudioStream.
+function lovr.data.newAudioStream(capacity, format, channels, rate) end
+
 ---Creates a new Blob.
 ---
 ---@param size number The amount of data to allocate for the Blob, in bytes.  All of the bytes will be filled with zeroes.
@@ -26,7 +35,16 @@ function lovr.data.newBlob(contents, name) end
 ---@return Blob blob The new Blob.
 function lovr.data.newBlob(source, name) end
 
----Creates a new Image.  Image data can be loaded and decoded from an image file, or a raw block of pixels with a specified width, height, and format can be created.
+---Creates a new Blob that does not allocate any memory of its own, but instead points at a subsection of an existing Blob.
+---
+---@param parent Blob The parent Blob.
+---@param offset number The offset of the subsection to reference, in bytes.
+---@param extent? number The size of the subsection, in bytes.  When nil, the subsection will extend to the end of the parent Blob.
+---@param name? string An optional name for the view (used in error messages).
+---@return Blob view The new Blob view.
+function lovr.data.newBlobView(parent, offset, extent, name) end
+
+---Creates a new Image.  Image data can be loaded and decoded from an image file.  Alternatively, a blank image can be created with a given width, height, and format.
 ---
 ---#### Notes:
 ---
@@ -34,11 +52,11 @@ function lovr.data.newBlob(source, name) end
 ---
 ---DDS and KTX files can contain cubemaps and array textures, in any of the texture formats LÖVR supports.
 ---
----@param filename string The filename of the image to load.
+---@param file string | Blob A filename or Blob containing an image file to load.
 ---@return Image image The new Image.
-function lovr.data.newImage(filename) end
+function lovr.data.newImage(file) end
 
----Creates a new Image.  Image data can be loaded and decoded from an image file, or a raw block of pixels with a specified width, height, and format can be created.
+---Creates a new Image.  Image data can be loaded and decoded from an image file.  Alternatively, a blank image can be created with a given width, height, and format.
 ---
 ---#### Notes:
 ---
@@ -53,7 +71,7 @@ function lovr.data.newImage(filename) end
 ---@return Image image The new Image.
 function lovr.data.newImage(width, height, format, data) end
 
----Creates a new Image.  Image data can be loaded and decoded from an image file, or a raw block of pixels with a specified width, height, and format can be created.
+---Creates a new Image.  Image data can be loaded and decoded from an image file.  Alternatively, a blank image can be created with a given width, height, and format.
 ---
 ---#### Notes:
 ---
@@ -65,29 +83,25 @@ function lovr.data.newImage(width, height, format, data) end
 ---@return Image image The new Image.
 function lovr.data.newImage(source) end
 
----Creates a new Image.  Image data can be loaded and decoded from an image file, or a raw block of pixels with a specified width, height, and format can be created.
----
----#### Notes:
----
----The supported image file formats are png, jpg, hdr, dds, ktx1, ktx2, and astc.
----
----DDS and KTX files can contain cubemaps and array textures, in any of the texture formats LÖVR supports.
----
----@param blob Blob The Blob containing image data to decode.
----@return Image image The new Image.
-function lovr.data.newImage(blob) end
-
 ---Loads a 3D model from a file.  The supported 3D file formats are OBJ and glTF.
 ---
----@param filename string The filename of the model to load.
+---@param file string | Blob A filename or Blob containing the model data to import.
 ---@return ModelData modelData The new ModelData.
-function lovr.data.newModelData(filename) end
+function lovr.data.newModelData(file) end
 
----Loads a 3D model from a file.  The supported 3D file formats are OBJ and glTF.
+---Creates a new Rasterizer from a TTF or BMFont file.
 ---
----@param blob Blob The Blob containing data for a model to decode.
----@return ModelData modelData The new ModelData.
-function lovr.data.newModelData(blob) end
+---@param file string | Blob A filename or Blob containing the font file to load.
+---@param size? number The resolution to render the font at, in pixels (TTF only).  Higher resolutions use more memory and processing power but may provide better quality results for some fonts/situations.
+---@return Rasterizer rasterizer The new Rasterizer.
+function lovr.data.newRasterizer(file, size) end
+
+---Creates a new Rasterizer from a TTF or BMFont file.
+---
+---@param file string | Blob A filename or Blob containing the font file to load.
+---@param atlas? Image An Image to use for the BMFont atlas, instead of the one in the BMFont file.
+---@return Rasterizer rasterizer The new Rasterizer.
+function lovr.data.newRasterizer(file, atlas) end
 
 ---Creates a new Rasterizer from a TTF or BMFont file.
 ---
@@ -95,41 +109,25 @@ function lovr.data.newModelData(blob) end
 ---@return Rasterizer rasterizer The new Rasterizer.
 function lovr.data.newRasterizer(size) end
 
----Creates a new Rasterizer from a TTF or BMFont file.
----
----@param filename string The filename of the font file to load.
----@param size? number The resolution to render the font at, in pixels (TTF only).  Higher resolutions use more memory and processing power but may provide better quality results for some fonts/situations.
----@return Rasterizer rasterizer The new Rasterizer.
-function lovr.data.newRasterizer(filename, size) end
-
----Creates a new Rasterizer from a TTF or BMFont file.
----
----@param blob Blob The Blob containing font data.
----@param size? number The resolution to render the font at, in pixels (TTF only).  Higher resolutions use more memory and processing power but may provide better quality results for some fonts/situations.
----@return Rasterizer rasterizer The new Rasterizer.
-function lovr.data.newRasterizer(blob, size) end
-
 ---Creates a new Sound.  A sound can be loaded from an audio file, or it can be created empty with capacity for a certain number of audio frames.
 ---
 ---When loading audio from a file, use the `decode` option to control whether compressed audio should remain compressed or immediately get decoded to raw samples.
 ---
----When creating an empty sound, the `contents` parameter can be set to `'stream'` to create an audio stream.  On streams, `Sound:setFrames` will always write to the end of the stream, and `Sound:getFrames` will always read the oldest samples from the beginning.  The number of frames in the sound is the total capacity of the stream's buffer.
----
 ---#### Notes:
 ---
----It is highly recommended to use an audio format that matches the format of the audio module: `f32` sample formats at a sample rate of 48000, with 1 channel for spatialized sources or 2 channels for unspatialized sources.  This will avoid the need to convert audio during playback, which boosts performance of the audio thread.
+---It is recommended to use an audio format that matches the format of the audio module: `f32` sample formats at a sample rate of 48000, with 1 channel for spatialized sources or 2 channels for unspatialized sources.  This will avoid the need to convert audio during playback, which improves performance of the audio thread slightly.
 ---
 ---The WAV importer supports 16, 24, and 32 bit integer data and 32 bit floating point data.  The data must be mono, stereo, or 4-channel full-sphere ambisonic.  The `WAVE_FORMAT_EXTENSIBLE` extension is supported.
 ---
----Ambisonic channel layouts are supported for import (but not yet for playback).  Ambisonic data can be loaded from WAV files.  It must be first-order full-sphere ambisonic data with 4 channels.  If the WAV has a `WAVE_FORMAT_EXTENSIBLE` chunk with an `AMBISONIC_B_FORMAT` format GUID, then the data is understood as using the AMB format with Furse-Malham channel ordering and normalization.  *All other* 4-channel files are assumed to be using the AmbiX format with ACN channel ordering and SN3D normalization.  AMB files will get automatically converted to AmbiX on import, so ambisonic Sounds will always be in a consistent format.
----
 ---OGG and MP3 files will always have the `f32` format when loaded.
+---
+---Ambisonic sounds can be imported from WAV files.  They must be full-sphere ambisonic data with 4, 9, or 16 channels.  If the WAV has a `WAVE_FORMAT_EXTENSIBLE` chunk with an `AMBISONIC_B_FORMAT` format GUID, then the data is understood as using the AMB format with Furse-Malham channel ordering and normalization.  *All other* 4-channel files are assumed to be using the AmbiX format with ACN channel ordering and SN3D normalization.  AMB files will get automatically converted to AmbiX on import, so ambisonic Sounds will always be AmbiX.
 ---
 ---@param frames number The number of frames the Sound can hold.
 ---@param format? SampleFormat The sample data type.
----@param channels? ChannelLayout The channel layout.
+---@param channels? number The number of channels.
 ---@param sampleRate? number The sample rate, in Hz.
----@param contents? any A Blob containing raw audio samples to use as the initial contents, 'stream' to create an audio stream, or `nil` to leave the data initialized to zero.
+---@param contents? Blob An optional Blob containing raw audio samples to use as the initial contents.
 ---@return Sound sound Sounds good.
 function lovr.data.newSound(frames, format, channels, sampleRate, contents) end
 
@@ -137,43 +135,133 @@ function lovr.data.newSound(frames, format, channels, sampleRate, contents) end
 ---
 ---When loading audio from a file, use the `decode` option to control whether compressed audio should remain compressed or immediately get decoded to raw samples.
 ---
----When creating an empty sound, the `contents` parameter can be set to `'stream'` to create an audio stream.  On streams, `Sound:setFrames` will always write to the end of the stream, and `Sound:getFrames` will always read the oldest samples from the beginning.  The number of frames in the sound is the total capacity of the stream's buffer.
----
 ---#### Notes:
 ---
----It is highly recommended to use an audio format that matches the format of the audio module: `f32` sample formats at a sample rate of 48000, with 1 channel for spatialized sources or 2 channels for unspatialized sources.  This will avoid the need to convert audio during playback, which boosts performance of the audio thread.
+---It is recommended to use an audio format that matches the format of the audio module: `f32` sample formats at a sample rate of 48000, with 1 channel for spatialized sources or 2 channels for unspatialized sources.  This will avoid the need to convert audio during playback, which improves performance of the audio thread slightly.
 ---
 ---The WAV importer supports 16, 24, and 32 bit integer data and 32 bit floating point data.  The data must be mono, stereo, or 4-channel full-sphere ambisonic.  The `WAVE_FORMAT_EXTENSIBLE` extension is supported.
 ---
----Ambisonic channel layouts are supported for import (but not yet for playback).  Ambisonic data can be loaded from WAV files.  It must be first-order full-sphere ambisonic data with 4 channels.  If the WAV has a `WAVE_FORMAT_EXTENSIBLE` chunk with an `AMBISONIC_B_FORMAT` format GUID, then the data is understood as using the AMB format with Furse-Malham channel ordering and normalization.  *All other* 4-channel files are assumed to be using the AmbiX format with ACN channel ordering and SN3D normalization.  AMB files will get automatically converted to AmbiX on import, so ambisonic Sounds will always be in a consistent format.
----
 ---OGG and MP3 files will always have the `f32` format when loaded.
 ---
----@param filename string The filename of a sound to load.
----@param decode boolean Whether compressed audio files should be immediately decoded.
+---Ambisonic sounds can be imported from WAV files.  They must be full-sphere ambisonic data with 4, 9, or 16 channels.  If the WAV has a `WAVE_FORMAT_EXTENSIBLE` chunk with an `AMBISONIC_B_FORMAT` format GUID, then the data is understood as using the AMB format with Furse-Malham channel ordering and normalization.  *All other* 4-channel files are assumed to be using the AmbiX format with ACN channel ordering and SN3D normalization.  AMB files will get automatically converted to AmbiX on import, so ambisonic Sounds will always be AmbiX.
+---
+---@param file string | Blob A filename or Blob containing a sound file to load.
+---@param decode? boolean Whether compressed audio files should be immediately decoded.
 ---@return Sound sound Sounds good.
-function lovr.data.newSound(filename, decode) end
+function lovr.data.newSound(file, decode) end
 
----Creates a new Sound.  A sound can be loaded from an audio file, or it can be created empty with capacity for a certain number of audio frames.
+---An AudioStream is similar to a `Sound`, but stores a continuous stream of audio.  `Source` objects can be created from AudioStreams.
 ---
----When loading audio from a file, use the `decode` option to control whether compressed audio should remain compressed or immediately get decoded to raw samples.
+---Audio streams are used for microphone input, by capturing samples from an audio device.  See `lovr.audio.setDevice` and `lovr.audio.getStream` for more details.  They are also useful for generating audio dynamically and playing it with a `Source`.
 ---
----When creating an empty sound, the `contents` parameter can be set to `'stream'` to create an audio stream.  On streams, `Sound:setFrames` will always write to the end of the stream, and `Sound:getFrames` will always read the oldest samples from the beginning.  The number of frames in the sound is the total capacity of the stream's buffer.
+---Streams store audio data in a fixed-size ring buffer.  Data is always written to the end of the stream, and reading data will read from the beginning.  Once data is read, it is "consumed", making more space available for writing.  Only one thread is allowed to write to the stream at a time, and only one thread is allowed to read.
+---@class AudioStream
+local AudioStream = {}
+
+---Returns the size of the AudioStream ring buffer, in frames.
+---
+---@return number capacity The number of audio frames in the audio stream ring buffer.
+function AudioStream:getCapacity() end
+
+---Returns the number of channels in the AudioStream.
+---
+---@return number channels The number of channels.
+function AudioStream:getChannelCount() end
+
+---Returns the channel layout of the AudioStream.
+---
+---@return ChannelLayout layout The channel layout.
+function AudioStream:getChannelLayout() end
+
+---Returns the sample format of the AudioStream.
+---
+---@return SampleFormat format The sample format.
+function AudioStream:getFormat() end
+
+---Returns the number of frames that are available for reading in the audio stream.
+---
+---@return number frames The number of audio frames that can be read.
+function AudioStream:getReadCapacity() end
+
+---Returns the sample rate of the AudioStream.
+---
+---@return number rate The sample rate, in Hz (samples per second).
+function AudioStream:getSampleRate() end
+
+---Returns the number of frames that are available for writing in the audio stream.
+---
+---@return number frames The number of audio frames that can be written.
+function AudioStream:getWriteCapacity() end
+
+---Reads data from the AudioStream.
 ---
 ---#### Notes:
 ---
----It is highly recommended to use an audio format that matches the format of the audio module: `f32` sample formats at a sample rate of 48000, with 1 channel for spatialized sources or 2 channels for unspatialized sources.  This will avoid the need to convert audio during playback, which boosts performance of the audio thread.
+---When writing to a Blob or Sound, `count` is clamped, using the size of the destination and the `offset` parameter.
 ---
----The WAV importer supports 16, 24, and 32 bit integer data and 32 bit floating point data.  The data must be mono, stereo, or 4-channel full-sphere ambisonic.  The `WAVE_FORMAT_EXTENSIBLE` extension is supported.
+---Only one thread can read from the stream at a time.
 ---
----Ambisonic channel layouts are supported for import (but not yet for playback).  Ambisonic data can be loaded from WAV files.  It must be first-order full-sphere ambisonic data with 4 channels.  If the WAV has a `WAVE_FORMAT_EXTENSIBLE` chunk with an `AMBISONIC_B_FORMAT` format GUID, then the data is understood as using the AMB format with Furse-Malham channel ordering and normalization.  *All other* 4-channel files are assumed to be using the AmbiX format with ACN channel ordering and SN3D normalization.  AMB files will get automatically converted to AmbiX on import, so ambisonic Sounds will always be in a consistent format.
+---@param count? number The number of frames to read.  When nil, reads all of the data in the stream.
+---@return {number} table A table of audio samples.
+function AudioStream:read(count) end
+
+---Reads data from the AudioStream.
 ---
----OGG and MP3 files will always have the `f32` format when loaded.
+---#### Notes:
 ---
----@param blob Blob The Blob containing audio file data to load.
----@param decode boolean Whether compressed audio files should be immediately decoded.
----@return Sound sound Sounds good.
-function lovr.data.newSound(blob, decode) end
+---When writing to a Blob or Sound, `count` is clamped, using the size of the destination and the `offset` parameter.
+---
+---Only one thread can read from the stream at a time.
+---
+---@param count? number The number of frames to read.  When nil, reads all of the data in the stream.
+---@param sound Sound A Sound to write the audio to.
+---@param offset? number An offset to start writing into the destination (frames for Sounds, bytes for Blobs).
+---@return number n The number of audio frames that were actually read.
+function AudioStream:read(count, sound, offset) end
+
+---Reads data from the AudioStream.
+---
+---#### Notes:
+---
+---When writing to a Blob or Sound, `count` is clamped, using the size of the destination and the `offset` parameter.
+---
+---Only one thread can read from the stream at a time.
+---
+---@param count? number The number of frames to read.  When nil, reads all of the data in the stream.
+---@param blob Blob A Blob to write the audio to.
+---@param offset? number An offset to start writing into the destination (frames for Sounds, bytes for Blobs).
+---@return number n The number of audio frames that were actually read.
+function AudioStream:read(count, blob, offset) end
+
+---Writes data to the AudioStream.
+---
+---#### Notes:
+---
+---Only one thread can write to the stream at a time.
+---
+---@param table {number} A table containing audio samples to write to the stream.
+---@return number n The number of audio frames that were actually written to the stream.
+function AudioStream:write(table) end
+
+---Writes data to the AudioStream.
+---
+---#### Notes:
+---
+---Only one thread can write to the stream at a time.
+---
+---@param sound Sound A Sound to write to the stream.
+---@return number n The number of audio frames that were actually written to the stream.
+function AudioStream:write(sound) end
+
+---Writes data to the AudioStream.
+---
+---#### Notes:
+---
+---Only one thread can write to the stream at a time.
+---
+---@param blob Blob A Blob to write to the stream.
+---@return number n The number of audio frames that were actually written to the stream.
+function AudioStream:write(blob) end
 
 ---A Blob is an object that holds binary data.  It can be passed to most functions that take filename arguments, like `lovr.graphics.newModel` or `lovr.audio.newSource`.  Blobs aren't usually necessary for simple projects, but they can be really helpful if:
 ---
@@ -187,12 +275,46 @@ function lovr.data.newSound(blob, decode) end
 ---@class Blob
 local Blob = {}
 
----Returns the size of the Blob's contents, in bytes.
+---Returns 32-bit floating point numbers from the data in the Blob.
 ---
----@return number bytes The size of the Blob, in bytes.
-function Blob:getSize() end
+---@param offset? number A non-negative byte offset to read from.
+---@param count? number The number of floats to read.
+---@return number ... `count` 32-bit floats.
+function Blob:getF32(offset, count) end
+
+---Returns 64-bit floating point numbers from the data in the Blob.
+---
+---@param offset? number A non-negative byte offset to read from.
+---@param count? number The number of doubles to read.
+---@return number ... `count` 64-bit doubles.
+function Blob:getF64(offset, count) end
+
+---Returns signed 16-bit integers from the data in the Blob.
+---
+---@param offset? number A non-negative byte offset to read from.
+---@param count? number The number of integers to read.
+---@return number ... `count` signed 16-bit integers, from -32768 to 32767.
+function Blob:getI16(offset, count) end
+
+---Returns signed 32-bit integers from the data in the Blob.
+---
+---@param offset? number A non-negative byte offset to read from.
+---@param count? number The number of integers to read.
+---@return number ... `count` signed 32-bit integers, from -2147483648 to 2147483647.
+function Blob:getI32(offset, count) end
+
+---Returns signed 8-bit integers from the data in the Blob.
+---
+---@param offset? number A non-negative byte offset to read from.
+---@param count? number The number of integers to read.
+---@return number ... `count` signed 8-bit integers, from -128 to 127.
+function Blob:getI8(offset, count) end
 
 ---Returns the filename the Blob was loaded from, or the custom name given to it when it was created.  This label is also used in error messages.
+---
+---#### Notes:
+---
+---If a Blob was created without a name, its name will default to the empty string.
 ---
 ---@return string name The name of the Blob.
 function Blob:getName() end
@@ -201,6 +323,11 @@ function Blob:getName() end
 ---
 ---@return userdata pointer A pointer to the data.
 function Blob:getPointer() end
+
+---Returns the size of the Blob's contents, in bytes.
+---
+---@return number bytes The size of the Blob, in bytes.
+function Blob:getSize() end
 
 ---Returns a binary string containing the Blob's data.
 ---
@@ -226,40 +353,12 @@ function Blob:getPointer() end
 ---@return string data The Blob's data.
 function Blob:getString(offset, size) end
 
----Returns signed 8-bit integers from the data in the Blob.
----
----@param offset? number A non-negative byte offset to read from.
----@param count? number The number of integers to read.
----@return number ... `count` signed 8-bit integers, from -128 to 127.
-function Blob:getI8(offset, count) end
-
----Returns unsigned 8-bit integers from the data in the Blob.
----
----@param offset? number A non-negative byte offset to read from.
----@param count? number The number of integers to read.
----@return number ... `count` unsigned 8-bit integers, from 0 to 255.
-function Blob:getU8(offset, count) end
-
----Returns signed 16-bit integers from the data in the Blob.
----
----@param offset? number A non-negative byte offset to read from.
----@param count? number The number of integers to read.
----@return number ... `count` signed 16-bit integers, from -32768 to 32767.
-function Blob:getI16(offset, count) end
-
 ---Returns unsigned 16-bit integers from the data in the Blob.
 ---
 ---@param offset? number A non-negative byte offset to read from.
 ---@param count? number The number of integers to read.
 ---@return number ... `count` unsigned 16-bit integers, from 0 to 65535.
 function Blob:getU16(offset, count) end
-
----Returns signed 32-bit integers from the data in the Blob.
----
----@param offset? number A non-negative byte offset to read from.
----@param count? number The number of integers to read.
----@return number ... `count` signed 32-bit integers, from -2147483648 to 2147483647.
-function Blob:getI32(offset, count) end
 
 ---Returns unsigned 32-bit integers from the data in the Blob.
 ---
@@ -268,94 +367,12 @@ function Blob:getI32(offset, count) end
 ---@return number ... `count` unsigned 32-bit integers, from 0 to 4294967296.
 function Blob:getU32(offset, count) end
 
----Returns 32-bit floating point numbers from the data in the Blob.
+---Returns unsigned 8-bit integers from the data in the Blob.
 ---
 ---@param offset? number A non-negative byte offset to read from.
----@param count? number The number of floats to read.
----@return number ... `count` 32-bit floats.
-function Blob:getF32(offset, count) end
-
----Returns 64-bit floating point numbers from the data in the Blob.
----
----@param offset? number A non-negative byte offset to read from.
----@param count? number The number of doubles to read.
----@return number ... `count` 64-bit doubles.
-function Blob:getF64(offset, count) end
-
----Writes 8-bit signed integers to the Blob.
----
----@param offset number A non-negative byte offset to start writing at.
----@param ... number Numbers to write to the blob as 8-bit signed integers (each taking up 1 byte, ranging from
-----127 to 128).
-function Blob:setI8(offset, ...) end
-
----Writes 8-bit signed integers to the Blob.
----
----@param offset number A non-negative byte offset to start writing at.
----@param table number A table of numbers to write to the blob as 8-bit signed integers (each taking up 1 byte, ranging from -127 to 128).
-function Blob:setI8(offset, table) end
-
----Writes 8-bit unsigned integers to the Blob.
----
----@param offset number A non-negative byte offset to start writing at.
----@param ... number Numbers to write to the blob as 8-bit unsigned integers (each taking up 1 byte, ranging from 0 to 255).
-function Blob:setU8(offset, ...) end
-
----Writes 8-bit unsigned integers to the Blob.
----
----@param offset number A non-negative byte offset to start writing at.
----@param table number A table of numbers to write to the blob as 8-bit unsigned integers (each taking up 1 byte, ranging from 0 to 255).
-function Blob:setU8(offset, table) end
-
----Writes 16-bit signed integers to the Blob.
----
----@param offset number A non-negative byte offset to start writing at.
----@param ... number Numbers to write to the blob as 16-bit signed integers (each taking up 2 bytes, ranging from
-----32768 to 32767).
-function Blob:setI16(offset, ...) end
-
----Writes 16-bit signed integers to the Blob.
----
----@param offset number A non-negative byte offset to start writing at.
----@param table number A table of numbers to write to the blob as 16-bit signed integers (each taking up 2 bytes, ranging from -32768 to 32767).
-function Blob:setI16(offset, table) end
-
----Writes 16-bit unsigned integers to the Blob.
----
----@param offset number A non-negative byte offset to start writing at.
----@param ... number Numbers to write to the blob as 16-bit unsigned integers (each taking up 2 bytes, ranging from 0 to 65535).
-function Blob:setU16(offset, ...) end
-
----Writes 16-bit unsigned integers to the Blob.
----
----@param offset number A non-negative byte offset to start writing at.
----@param table number A table of numbers to write to the blob as 16-bit unsigned integers (each taking up 2 bytes, ranging from 0 to 65535).
-function Blob:setU16(offset, table) end
-
----Writes 32-bit signed integers to the Blob.
----
----@param offset number A non-negative byte offset to start writing at.
----@param ... number Numbers to write to the blob as 32-bit signed integers (each taking up 4 bytes, ranging from
-----2147483648 to 2147483647).
-function Blob:setI32(offset, ...) end
-
----Writes 32-bit signed integers to the Blob.
----
----@param offset number A non-negative byte offset to start writing at.
----@param table number A table of numbers to write to the blob as 32-bit signed integers (each taking up 4 bytes, ranging from -2147483648 to 2147483647).
-function Blob:setI32(offset, table) end
-
----Writes 32-bit unsigned integers to the Blob.
----
----@param offset number A non-negative byte offset to start writing at.
----@param ... number Numbers to write to the blob as 32-bit unsigned integers (each taking up 4 bytes, ranging from 0 to 4294967296).
-function Blob:setU32(offset, ...) end
-
----Writes 32-bit unsigned integers to the Blob.
----
----@param offset number A non-negative byte offset to start writing at.
----@param table number A table of numbers to write to the blob as 32-bit unsigned integers (each taking up 4 bytes, ranging from 0 to 4294967296).
-function Blob:setU32(offset, table) end
+---@param count? number The number of integers to read.
+---@return number ... `count` unsigned 8-bit integers, from 0 to 255.
+function Blob:getU8(offset, count) end
 
 ---Writes 32-bit floating point numbers to the Blob.
 ---
@@ -366,7 +383,7 @@ function Blob:setF32(offset, ...) end
 ---Writes 32-bit floating point numbers to the Blob.
 ---
 ---@param offset number A non-negative byte offset to start writing at.
----@param table number A table of numbers to write to the blob as 32-bit floats (each taking up 4 bytes).
+---@param table {number} A table of numbers to write to the blob as 32-bit floats (each taking up 4 bytes).
 function Blob:setF32(offset, table) end
 
 ---Writes 64-bit floating point numbers to the Blob.
@@ -378,8 +395,83 @@ function Blob:setF64(offset, ...) end
 ---Writes 64-bit floating point numbers to the Blob.
 ---
 ---@param offset number A non-negative byte offset to start writing at.
----@param table number A table of numbers to write to the blob as 64-bit floating point numbers (each taking up 8 bytes).
+---@param table {number} A table of numbers to write to the blob as 64-bit floating point numbers (each taking up 8 bytes).
 function Blob:setF64(offset, table) end
+
+---Writes 16-bit signed integers to the Blob.
+---
+---@param offset number A non-negative byte offset to start writing at.
+---@param ... number Numbers to write to the blob as 16-bit signed integers (each taking up 2 bytes, ranging from
+----32768 to 32767).
+function Blob:setI16(offset, ...) end
+
+---Writes 16-bit signed integers to the Blob.
+---
+---@param offset number A non-negative byte offset to start writing at.
+---@param table {number} A table of numbers to write to the blob as 16-bit signed integers (each taking up 2 bytes, ranging from -32768 to 32767).
+function Blob:setI16(offset, table) end
+
+---Writes 32-bit signed integers to the Blob.
+---
+---@param offset number A non-negative byte offset to start writing at.
+---@param ... number Numbers to write to the blob as 32-bit signed integers (each taking up 4 bytes, ranging from
+----2147483648 to 2147483647).
+function Blob:setI32(offset, ...) end
+
+---Writes 32-bit signed integers to the Blob.
+---
+---@param offset number A non-negative byte offset to start writing at.
+---@param table {number} A table of numbers to write to the blob as 32-bit signed integers (each taking up 4 bytes, ranging from -2147483648 to 2147483647).
+function Blob:setI32(offset, table) end
+
+---Writes 8-bit signed integers to the Blob.
+---
+---@param offset number A non-negative byte offset to start writing at.
+---@param ... number Numbers to write to the blob as 8-bit signed integers (each taking up 1 byte, ranging from
+----127 to 128).
+function Blob:setI8(offset, ...) end
+
+---Writes 8-bit signed integers to the Blob.
+---
+---@param offset number A non-negative byte offset to start writing at.
+---@param table {number} A table of numbers to write to the blob as 8-bit signed integers (each taking up 1 byte, ranging from -127 to 128).
+function Blob:setI8(offset, table) end
+
+---Writes 16-bit unsigned integers to the Blob.
+---
+---@param offset number A non-negative byte offset to start writing at.
+---@param ... number Numbers to write to the blob as 16-bit unsigned integers (each taking up 2 bytes, ranging from 0 to 65535).
+function Blob:setU16(offset, ...) end
+
+---Writes 16-bit unsigned integers to the Blob.
+---
+---@param offset number A non-negative byte offset to start writing at.
+---@param table {number} A table of numbers to write to the blob as 16-bit unsigned integers (each taking up 2 bytes, ranging from 0 to 65535).
+function Blob:setU16(offset, table) end
+
+---Writes 32-bit unsigned integers to the Blob.
+---
+---@param offset number A non-negative byte offset to start writing at.
+---@param ... number Numbers to write to the blob as 32-bit unsigned integers (each taking up 4 bytes, ranging from 0 to 4294967296).
+function Blob:setU32(offset, ...) end
+
+---Writes 32-bit unsigned integers to the Blob.
+---
+---@param offset number A non-negative byte offset to start writing at.
+---@param table {number} A table of numbers to write to the blob as 32-bit unsigned integers (each taking up 4 bytes, ranging from 0 to 4294967296).
+function Blob:setU32(offset, table) end
+
+---Writes 8-bit unsigned integers to the Blob.
+---
+---@param offset number A non-negative byte offset to start writing at.
+---@param ... number Numbers to write to the blob as 8-bit unsigned integers (each taking up 1 byte, ranging from 0 to 255).
+function Blob:setU8(offset, ...) end
+
+---Writes 8-bit unsigned integers to the Blob.
+---
+---@param offset number A non-negative byte offset to start writing at.
+---@param table {number} A table of numbers to write to the blob as 8-bit unsigned integers (each taking up 1 byte, ranging from 0 to 255).
+function Blob:setU8(offset, table) end
 
 ---An Image stores raw 2D pixel info for `Texture`s.  It has a width, height, and format.  The Image can be initialized with the contents of an image file or it can be created with uninitialized contents.  The supported image formats are `png`, `jpg`, `hdr`, `dds`, `ktx`, and `astc`.
 ---
@@ -387,7 +479,26 @@ function Blob:setF64(offset, table) end
 ---@class Image
 local Image = {}
 
----Encodes the Image to an uncompressed png.  This intended mainly for debugging.
+---Encodes the Image to an **uncompressed** png.  This intended to be used mainly for debugging or tooling.
+---
+---#### Notes:
+---
+---The following texture formats are supported:
+---
+---- `r8`
+---- `rg8`
+---- `rgba8`
+---- `bgra8`
+---- `r16`
+---- `rg16`
+---- `rgba16`
+---- `rgb565`
+---- `rgb5a1`
+---- `rgb10a2`
+---
+---The PNG will be 16-bit for `r16`, `rg16`, `rgba16`, and `rgb10a2`, otherwise it will be 8-bit.
+---
+---The PNG will always have 4 channels (RGBA).
 ---
 ---@return Blob blob A new Blob containing the PNG image data.
 function Image:encode() end
@@ -417,7 +528,26 @@ function Image:getHeight() end
 ---
 ---#### Notes:
 ---
----The following texture formats are supported: `r8`, `rg8`, `rgba8`, `r16`, `rg16`, `rgba16`, `r32f`, `rg32f`, `rgba32f`.
+---The following texture formats are supported:
+---
+---- `r8`
+---- `rg8`
+---- `rgba8`
+---- `bgra8`
+---- `r16`
+---- `rg16`
+---- `rgba16`
+---- `r16f`
+---- `rg16f`
+---- `rgba16f`
+---- `r32f`
+---- `rg32f`
+---- `rgba32f`
+---- `rgb565`
+---- `rgb5a1`
+---- `rgb10a2`
+---
+---Formats that don't have an alpha component will return 1.0 for alpha.
 ---
 ---@param x number The x coordinate of the pixel to get (0-indexed).
 ---@param y number The y coordinate of the pixel to get (0-indexed).
@@ -477,7 +607,24 @@ function Image:getWidth() end
 ---
 ---#### Notes:
 ---
----The following texture formats are supported: `r8`, `rg8`, `rgba8`, `r16`, `rg16`, `rgba16`, `r32f`, `rg32f`, `rgba32f`.
+---The following texture formats are supported:
+---
+---- `r8`
+---- `rg8`
+---- `rgba8`
+---- `bgra8`
+---- `r16`
+---- `rg16`
+---- `rgba16`
+---- `r16f`
+---- `rg16f`
+---- `rgba16f`
+---- `r32f`
+---- `rg32f`
+---- `rgba32f`
+---- `rgb565`
+---- `rgb5a1`
+---- `rgb10a2`
 ---
 ---#### Example:
 ---
@@ -553,7 +700,24 @@ function Image:paste(source, x, y, fromX, fromY, width, height) end
 ---
 ---#### Notes:
 ---
----The following texture formats are supported: `r8`, `rg8`, `rgba8`, `r16`, `rg16`, `rgba16`, `r32f`, `rg32f`, `rgba32f`.
+---The following texture formats are supported:
+---
+---- `r8`
+---- `rg8`
+---- `rgba8`
+---- `bgra8`
+---- `r16`
+---- `rg16`
+---- `rgba16`
+---- `r16f`
+---- `rg16f`
+---- `rgba16f`
+---- `r32f`
+---- `rg32f`
+---- `rgba32f`
+---- `rgb565`
+---- `rgb5a1`
+---- `rgb10a2`
 ---
 ---@param x number The x coordinate of the pixel to set (0-indexed).
 ---@param y number The y coordinate of the pixel to set (0-indexed).
@@ -573,154 +737,91 @@ local ModelData = {}
 
 ---Returns the number of channels in an animation.
 ---
----A channel is a set of keyframes for a single property of a node.
+---A channel is a set of keyframes targeting a single property of a node.
 ---
----@param index number The index of an animation.
+---@param animation number | string The name or index of an animation.
 ---@return number count The number of channels in the animation.
-function ModelData:getAnimationChannelCount(index) end
-
----Returns the number of channels in an animation.
----
----A channel is a set of keyframes for a single property of a node.
----
----@param name string The name of an animation.
----@return number count The number of channels in the animation.
-function ModelData:getAnimationChannelCount(name) end
+function ModelData:getAnimationChannelCount(animation) end
 
 ---Returns the number of animations in the model.
 ---
 ---@return number count The number of animations in the model.
 function ModelData:getAnimationCount() end
 
----Returns the duration of an animation.
+---Returns the duration of an animation in the model, in seconds.
 ---
 ---#### Notes:
 ---
----The duration of the animation is calculated as the latest timestamp of all of its channels.
+---The duration of an animation is calculated as the largest timestamp of all of its keyframes.
 ---
----@param index number The index of the animation.
+---@param animation string | number The name or index of an animation.
 ---@return number duration The duration of the animation, in seconds.
-function ModelData:getAnimationDuration(index) end
-
----Returns the duration of an animation.
----
----#### Notes:
----
----The duration of the animation is calculated as the latest timestamp of all of its channels.
----
----@param name string The name of the animation.
----@return number duration The duration of the animation, in seconds.
-function ModelData:getAnimationDuration(name) end
+function ModelData:getAnimationDuration(animation) end
 
 ---Returns a single keyframe in a channel of an animation.
 ---
----@param index number The index of an animation.
----@param channel number The index of a channel in the animation.
----@param keyframe number The index of a keyframe in the channel.
----@return number time The timestamp of the keyframe.
----@return number ... The data for the keyframe (either 3 or 4 numbers depending on the property).
-function ModelData:getAnimationKeyframe(index, channel, keyframe) end
-
----Returns a single keyframe in a channel of an animation.
----
----@param name string The name of an animation.
----@param channel number The index of a channel in the animation.
----@param keyframe number The index of a keyframe in the channel.
----@return number time The timestamp of the keyframe.
----@return number ... The data for the keyframe (either 3 or 4 numbers depending on the property).
-function ModelData:getAnimationKeyframe(name, channel, keyframe) end
-
----Returns the number of keyframes in a channel of an animation.
----
----@param index number The index of an animation.
----@param channel number The index of a channel in the animation.
----@return number count The number of keyframes in the channel.
-function ModelData:getAnimationKeyframeCount(index, channel) end
-
----Returns the number of keyframes in a channel of an animation.
----
----@param name string The name of an animation.
----@param channel number The index of a channel in the animation.
----@return number count The number of keyframes in the channel.
-function ModelData:getAnimationKeyframeCount(name, channel) end
-
----Returns the name of an animation.
----
 ---#### Notes:
 ---
----If the animation does not have a name, this function returns `nil`.
+---The number of values returned after `time` depends on the `AnimationProperty` targeted by the channel:
 ---
----@param index number The index of the animation.
----@return string name The name of the animation.
+---- `translation`: 3 numbers
+---- `rotation`: 4 numbers (returned as raw quaternion components)
+---- `scale`: 3 numbers
+---- `weights`: variable, contains 1 number for each blend shape in the node
+---
+---@param animation number The name or index of an animation.
+---@param channel number The index of a channel in the animation.
+---@param keyframe number The index of a keyframe in the channel.
+---@return number time The timestamp of the keyframe.
+---@return number ... The data for the keyframe (3 or more numbers, depending on the property).
+function ModelData:getAnimationKeyframe(animation, channel, keyframe) end
+
+---Returns the number of keyframes in a channel of an animation.
+---
+---@param animation string | number The name or index of an animation.
+---@param channel number The index of a channel in the animation.
+---@return number count The number of keyframes in the channel.
+function ModelData:getAnimationKeyframeCount(animation, channel) end
+
+---Returns the name of an animation in the model.
+---
+---@param index number The index of an animation.
+---@return string | nil name The name of the animation, or `nil` if the animation doesn't have a name.
 function ModelData:getAnimationName(index) end
 
----Returns the index of a node targeted by an animation's channel.
+---Returns the index of the node targeted by an animation's channel.
 ---
----@param index number The index of an animation.
+---@param animation number The index or name of an animation.
 ---@param channel number The index of a channel in the animation.
 ---@return number node The index of the node targeted by the channel.
-function ModelData:getAnimationNode(index, channel) end
-
----Returns the index of a node targeted by an animation's channel.
----
----@param name string The name of an animation.
----@param channel number The index of a channel in the animation.
----@return number node The index of the node targeted by the channel.
-function ModelData:getAnimationNode(name, channel) end
+function ModelData:getAnimationNode(animation, channel) end
 
 ---Returns the property targeted by an animation's channel.
 ---
----@param index number The index of an animation.
+---@param animation string | number The name or index of an animation.
 ---@param channel number The index of a channel in the animation.
----@return AnimationProperty property The property (translation, rotation, scale, weights) affected by the keyframes.
-function ModelData:getAnimationProperty(index, channel) end
-
----Returns the property targeted by an animation's channel.
----
----@param name string The name of an animation.
----@param channel number The index of a channel in the animation.
----@return AnimationProperty property The property (translation, rotation, scale, weights) affected by the keyframes.
-function ModelData:getAnimationProperty(name, channel) end
+---@return AnimationProperty property The property (translation, rotation, scale, or weights) affected by the keyframes.
+function ModelData:getAnimationProperty(animation, channel) end
 
 ---Returns the smooth mode of a channel in an animation.
 ---
----@param index number The index of an animation.
+---@param animation string | number The name or index of an animation.
 ---@param channel number The index of a channel in the animation.
 ---@return SmoothMode smooth The smooth mode of the keyframes.
-function ModelData:getAnimationSmoothMode(index, channel) end
+function ModelData:getAnimationSmoothMode(animation, channel) end
 
----Returns the smooth mode of a channel in an animation.
+---Returns the total number of blend shapes in the model.
 ---
----@param name string The name of an animation.
----@param channel number The index of a channel in the animation.
----@return SmoothMode smooth The smooth mode of the keyframes.
-function ModelData:getAnimationSmoothMode(name, channel) end
-
----Returns the number of blend shapes in the model.
+---This is a combined list from all the meshes.  It is also possible to query the blend shapes for a single mesh, using `ModelData:getMeshBlendShapeCount`.
 ---
----@return number count The number of blend shapes in the model.
+---@return number count The total number of blend shapes in the model.
 function ModelData:getBlendShapeCount() end
 
----Returns the name of a blend shape in the model.
----
----#### Notes:
----
----This function will throw an error if the blend shape index is invalid.
+---Returns the name of a blend shape.
 ---
 ---@param index number The index of a blend shape.
 ---@return string name The name of the blend shape.
 function ModelData:getBlendShapeName(index) end
-
----Returns one of the Blobs in the model, by index.
----
----@param index number The index of the Blob to get.
----@return Blob blob The Blob object.
-function ModelData:getBlob(index) end
-
----Returns the number of Blobs in the model.
----
----@return number count The number of Blobs in the model.
-function ModelData:getBlobCount() end
 
 ---Returns the 6 values of the model's axis-aligned bounding box.
 ---
@@ -732,37 +833,112 @@ function ModelData:getBlobCount() end
 ---@return number maxz The maximum z coordinate of the vertices in the model.
 function ModelData:getBoundingBox() end
 
----Returns a sphere approximately enclosing the vertices in the model.
+---Returns the 6 values of the model's axis-aligned bounding box.
 ---
----@return number x The x coordinate of the position of the sphere.
----@return number y The y coordinate of the position of the sphere.
----@return number z The z coordinate of the position of the sphere.
----@return number radius The radius of the bounding sphere.
-function ModelData:getBoundingSphere() end
+---@param mesh number The mesh to get the bounding box of.
+---@return number minx The minimum x coordinate of the vertices in the model.
+---@return number maxx The maximum x coordinate of the vertices in the model.
+---@return number miny The minimum y coordinate of the vertices in the model.
+---@return number maxy The maximum y coordinate of the vertices in the model.
+---@return number minz The minimum z coordinate of the vertices in the model.
+---@return number maxz The maximum z coordinate of the vertices in the model.
+function ModelData:getBoundingBox(mesh) end
+
+---Returns the 6 values of the model's axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the bounding box of.
+---@param part number The part to get the bounding box of.
+---@return number minx The minimum x coordinate of the vertices in the model.
+---@return number maxx The maximum x coordinate of the vertices in the model.
+---@return number miny The minimum y coordinate of the vertices in the model.
+---@return number maxy The maximum y coordinate of the vertices in the model.
+---@return number minz The minimum z coordinate of the vertices in the model.
+---@return number maxz The maximum z coordinate of the vertices in the model.
+function ModelData:getBoundingBox(mesh, part) end
 
 ---Returns the center of the model's axis-aligned bounding box, relative to the model's origin.
 ---
----@return number x The x offset of the center of the bounding box.
----@return number y The y offset of the center of the bounding box.
----@return number z The z offset of the center of the bounding box.
+---@return number x The x coordinate of the center of the bounding box.
+---@return number y The y coordinate of the center of the bounding box.
+---@return number z The z coordinate of the center of the bounding box.
 function ModelData:getCenter() end
+
+---Returns the center of the model's axis-aligned bounding box, relative to the model's origin.
+---
+---@param mesh number The mesh to get the center of.
+---@return number x The x coordinate of the center of the bounding box.
+---@return number y The y coordinate of the center of the bounding box.
+---@return number z The z coordinate of the center of the bounding box.
+function ModelData:getCenter(mesh) end
+
+---Returns the center of the model's axis-aligned bounding box, relative to the model's origin.
+---
+---@param mesh number The mesh to get the center of.
+---@param part number The part to get the center of.
+---@return number x The x coordinate of the center of the bounding box.
+---@return number y The y coordinate of the center of the bounding box.
+---@return number z The z coordinate of the center of the bounding box.
+function ModelData:getCenter(mesh, part) end
 
 ---Returns the depth of the model, computed from its axis-aligned bounding box.
 ---
----@return number depth The depth of the model.
+---@return number depth The depth.
 function ModelData:getDepth() end
+
+---Returns the depth of the model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the depth of.
+---@return number depth The depth.
+function ModelData:getDepth(mesh) end
+
+---Returns the depth of the model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the depth of.
+---@param part number The part to get the depth of.
+---@return number depth The depth.
+function ModelData:getDepth(mesh, part) end
 
 ---Returns the width, height, and depth of the model, computed from its axis-aligned bounding box.
 ---
----@return number width The width of the model.
----@return number height The height of the model.
----@return number depth The depth of the model.
+---@return number width The width.
+---@return number height The height.
+---@return number depth The depth.
 function ModelData:getDimensions() end
+
+---Returns the width, height, and depth of the model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the dimensions of.
+---@return number width The width.
+---@return number height The height.
+---@return number depth The depth.
+function ModelData:getDimensions(mesh) end
+
+---Returns the width, height, and depth of the model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the dimensions of.
+---@param part number The part to get the dimensions of.
+---@return number width The width.
+---@return number height The height.
+---@return number depth The depth.
+function ModelData:getDimensions(mesh, part) end
 
 ---Returns the height of the model, computed from its axis-aligned bounding box.
 ---
----@return number height The height of the model.
+---@return number height The height.
 function ModelData:getHeight() end
+
+---Returns the height of the model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the height of.
+---@return number height The height.
+function ModelData:getHeight(mesh) end
+
+---Returns the height of the model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the height of.
+---@param part number The part to get the height of.
+---@return number height The height.
+function ModelData:getHeight(mesh, part) end
 
 ---Returns one of the Images in the model, by index.
 ---
@@ -777,23 +953,9 @@ function ModelData:getImageCount() end
 
 ---Returns a table with all of the properties of a material.
 ---
----#### Notes:
----
----All images are optional and may be `nil`.
----
----@param index number The index of a material.
+---@param material string | number The name or index of a material.
 ---@return table properties The material properties.
-function ModelData:getMaterial(index) end
-
----Returns a table with all of the properties of a material.
----
----#### Notes:
----
----All images are optional and may be `nil`.
----
----@param name string The name of a material.
----@return table properties The material properties.
-function ModelData:getMaterial(name) end
+function ModelData:getMaterial(material) end
 
 ---Returns the number of materials in the model.
 ---
@@ -806,16 +968,58 @@ function ModelData:getMaterialCount() end
 ---@return string name The name of the material, or nil if the material does not have a name.
 function ModelData:getMaterialName(index) end
 
+---Returns the number of blend shapes in one of the model's meshes.
+---
+---@param mesh number The index of the mesh.
+---@return number count The number of blend shapes the mesh has.
+function ModelData:getMeshBlendShapeCount(mesh) end
+
+---Returns the name of a blend shape.
+---
+---@param mesh number The index of a mesh.
+---@param blendshape number The index of a blend shape in the mesh.
+---@return string name The name of the blend shape.
+function ModelData:getMeshBlendShapeName(mesh, blendshape) end
+
+---Returns the data for a single vertex in a blend shape.  The data represents a displacement of the vertex position, normal, and tangent.
+---
+---@param mesh number The index of a mesh.
+---@param blendshape number The index of a blend shape in the mesh.
+---@param vertex number The index of a vertex in the mesh.
+---@return number x The x displacement of the vertex position.
+---@return number y The y displacement of the vertex position.
+---@return number z The z displacement of the vertex position.
+---@return number nx The x displacement of the vertex normal.
+---@return number ny The y displacement of the vertex normal.
+---@return number nz The z displacement of the vertex normal.
+---@return number tx The x displacement of the vertex tangent.
+---@return number ty The y displacement of the vertex tangent.
+---@return number tz The z displacement of the vertex tangent.
+function ModelData:getMeshBlendVertex(mesh, blendshape, vertex) end
+
 ---Returns the number of meshes in the model.
 ---
 ---@return number count The number of meshes in the model.
 function ModelData:getMeshCount() end
 
----Returns the draw mode of a mesh.  This controls how its vertices are connected together (points, lines, or triangles).
+---Returns the draw mode of a mesh part.  The draw mode controls how mesh vertices are connected together. Meshes can be split into multiple parts, and each part can have its own draw mode.
 ---
 ---@param mesh number The index of a mesh.
----@return ModelDrawMode mode The draw mode of the mesh.
+---@return ModelDrawMode mode The draw mode of the part.
 function ModelData:getMeshDrawMode(mesh) end
+
+---Returns the vertex range of a part of a mesh.  Meshes can be split into multiple "parts", and each part can have its own draw mode and material.
+---
+---#### Notes:
+---
+---Parts will always use the full set of vertices/indices in the mesh, in order.
+---
+---If the mesh has indices, then the draw range will be in terms of indices, otherwise it will be vertices.  This matches the way `Mesh:setDrawRange` works.
+---
+---@param mesh number The index of a mesh.
+---@return number start The index of the first vertex or index in the part.
+---@return number count The number of vertices or indices in the part.
+function ModelData:getMeshDrawRange(mesh) end
 
 ---Returns one of the vertex indices in a mesh.  If a mesh has vertex indices, they define the order and connectivity of the vertices in the mesh, allowing a vertex to be reused multiple times without duplicating its data.
 ---
@@ -834,26 +1038,40 @@ function ModelData:getMeshIndex(mesh, index) end
 ---@return number count The number of vertex indices in the mesh.
 function ModelData:getMeshIndexCount(mesh) end
 
----Returns the data format of vertex indices in a mesh.  If a mesh doesn't use vertex indices, this function returns nil.
+---Returns the index of the material used by a mesh part.  Meshes can be split into multiple parts, and each part can have its own material.
 ---
 ---@param mesh number The index of a mesh.
----@return AttributeType type The data type of each vertex index (always u16 or u32).
----@return number blob The index of a Blob in the mesh where the binary data is stored.
----@return number offset A byte offset into the Blob's data where the index data starts.
----@return number stride The number of bytes between subsequent vertex indices.  Indices are always tightly packed, so this will always be 2 or 4 depending on the data type.
-function ModelData:getMeshIndexFormat(mesh) end
+---@param part? number The index of a part.
+---@return number | nil material The index of the material applied to the part, or nil if the part does not have a material.
+function ModelData:getMeshMaterial(mesh, part) end
 
----Returns the index of the material applied to a mesh.
+---Returns the number of parts in a mesh.  Meshes can be split into multiple "parts".  Each part refers to a subset of the mesh's vertices, and parts can have their own draw mode and material.
 ---
----@param mesh number The index of a mesh.
----@return number material The index of the material applied to the mesh, or nil if the mesh does not have a material.
-function ModelData:getMeshMaterial(mesh) end
+---@param mesh number The index of the mesh.
+---@return number parts The number of parts in the mesh.
+function ModelData:getMeshPartCount(mesh) end
 
----Returns the data for a single vertex in a mesh.  The data returned depends on the vertex format of a mesh, which is given by `ModelData:getMeshVertexFormat`.
+---Returns the data for a single vertex in a mesh.
 ---
 ---@param mesh number The index of a mesh to get the vertex from.
 ---@param vertex number The index of a vertex in the mesh to retrieve.
----@return number ... The data for all of the attributes of the vertex.
+---@return number x The x component of the position.
+---@return number y The y component of the position.
+---@return number z The z component of the position.
+---@return number nx The x component of the normal vector.
+---@return number ny The y component of the normal vector.
+---@return number nz The z component of the normal vector.
+---@return number u The u component of the texture coordinate.
+---@return number v The v component of the texture coordinate.
+---@return number u2 The u component of the second texture coordinate.
+---@return number v2 The v component of the second texture coordinate.
+---@return number r The r component of the vertex color (0 to 255).
+---@return number g The g component of the vertex color (0 to 255).
+---@return number b The b component of the vertex color (0 to 255).
+---@return number a The a component of the vertex color (0 to 255).
+---@return number tx The x component of the tangent vector.
+---@return number ty The y component of the tangent vector.
+---@return number tz The z component of the tangent vector.
 function ModelData:getMeshVertex(mesh, vertex) end
 
 ---Returns the number of vertices in a mesh.
@@ -862,66 +1080,36 @@ function ModelData:getMeshVertex(mesh, vertex) end
 ---@return number count The number of vertices in the mesh.
 function ModelData:getMeshVertexCount(mesh) end
 
----Returns the vertex format of a mesh.  The vertex format defines the properties associated with each vertex (position, color, etc.), including their types and binary data layout.
----
----#### Notes:
----
----The format is given as a table of vertex attributes.  Each attribute is a table containing the following:
----
----    { name, type, components, blob, offset, stride }
----
----- The `name` will be a `DefaultAttribute`.
----- The `type` will be an `AttributeType`.
----- The `component` count will be 1-4.
----- The `blob` is an index of one of the Blobs in the model (see `ModelData:getBlob`).
----- The `offset` is a byte offset from the start of the Blob where the attribute's data starts.
----- The `stride` is the number of bytes between consecutive values.
----
----@param mesh number The index of a mesh.
----@return table format The vertex format of the mesh.
-function ModelData:getMeshVertexFormat(mesh) end
-
 ---Returns extra information stored in the model file.  Currently this is only implemented for glTF models and returns the JSON string from the glTF or glb file.  The metadata can be used to get application-specific data or add support for glTF extensions not supported by LÖVR.
 ---
 ---@return string metadata The metadata from the model file.
 function ModelData:getMetadata() end
 
----Given a parent node, this function returns a table with the indices of its children.
+---Given a parent node, this function returns the index of its first child, or `nil` if it doesn't have any children.
 ---
----#### Notes:
+---This, together with `ModelData:getNodeSibling`, can be used to iterate the tree of nodes in a model.
 ---
----If the node does not have any children, this function returns an empty table.
----
----@param index number The index of the parent node.
----@return table children A table containing a node index for each child of the node.
-function ModelData:getNodeChildren(index) end
+---@param node string | number The name or index of the parent node.
+---@return number | nil child The index of the node's first child, or `nil` if the node doesn't have any children.
+function ModelData:getNodeChild(node) end
 
 ---Given a parent node, this function returns a table with the indices of its children.
 ---
----#### Notes:
----
----If the node does not have any children, this function returns an empty table.
----
----@param name string The name of the parent node.
----@return table children A table containing a node index for each child of the node.
-function ModelData:getNodeChildren(name) end
+---@param node string | number The name or index of the parent node.
+---@return {number} children A table containing the node index of each child of the parent node.
+---@deprecated
+function ModelData:getNodeChildren(node) end
 
 ---Returns the number of nodes in the model.
 ---
 ---@return number count The number of nodes in the model.
 function ModelData:getNodeCount() end
 
----Returns a table of mesh indices attached to a node.  Meshes define the geometry and materials of a model, as opposed to the nodes which define the transforms and hierarchy.  A node can have multiple meshes, and meshes can be reused in multiple nodes.
+---Returns the index of the mesh attached to a node.  Meshes contain the geometry and material information, whereas the nodes define the hierarchy and transforms.  A single mesh can be attached to multiple nodes.  Not every node has a mesh.
 ---
----@param index number The index of the node.
----@return table meshes A table with the node's mesh indices.
-function ModelData:getNodeMeshes(index) end
-
----Returns a table of mesh indices attached to a node.  Meshes define the geometry and materials of a model, as opposed to the nodes which define the transforms and hierarchy.  A node can have multiple meshes, and meshes can be reused in multiple nodes.
----
----@param name string The name of the node.
----@return table meshes A table with the node's mesh indices.
-function ModelData:getNodeMeshes(name) end
+---@param node string | number The name or index of a node.
+---@return number | nil mesh The index of the node's mesh, or `nil` if the node does not have a mesh.
+function ModelData:getNodeMesh(node) end
 
 ---Returns the name of a node.
 ---
@@ -935,37 +1123,22 @@ function ModelData:getNodeName(index) end
 
 ---Returns local orientation of a node, relative to its parent.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@return number angle The number of radians the node is rotated around its axis of rotation.
 ---@return number ax The x component of the axis of rotation.
 ---@return number ay The y component of the axis of rotation.
 ---@return number az The z component of the axis of rotation.
-function ModelData:getNodeOrientation(index) end
-
----Returns local orientation of a node, relative to its parent.
----
----@param name string The name of the node.
----@return number angle The number of radians the node is rotated around its axis of rotation.
----@return number ax The x component of the axis of rotation.
----@return number ay The y component of the axis of rotation.
----@return number az The z component of the axis of rotation.
-function ModelData:getNodeOrientation(name) end
+function ModelData:getNodeOrientation(node) end
 
 ---Given a child node, this function returns the index of its parent.
 ---
----@param index number The index of the child node.
----@return number parent The index of the parent.
-function ModelData:getNodeParent(index) end
-
----Given a child node, this function returns the index of its parent.
----
----@param name string The name of the child node.
----@return number parent The index of the parent.
-function ModelData:getNodeParent(name) end
+---@param node string | number The name or index of the child node.
+---@return number parent The index of the parent node.
+function ModelData:getNodeParent(node) end
 
 ---Returns local pose (position and orientation) of a node, relative to its parent.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@return number x The x coordinate.
 ---@return number y The y coordinate.
 ---@return number z The z coordinate.
@@ -973,63 +1146,37 @@ function ModelData:getNodeParent(name) end
 ---@return number ax The x component of the axis of rotation.
 ---@return number ay The y component of the axis of rotation.
 ---@return number az The z component of the axis of rotation.
-function ModelData:getNodePose(index) end
-
----Returns local pose (position and orientation) of a node, relative to its parent.
----
----@param name string The name of the node.
----@return number x The x coordinate.
----@return number y The y coordinate.
----@return number z The z coordinate.
----@return number angle The number of radians the node is rotated around its axis of rotation.
----@return number ax The x component of the axis of rotation.
----@return number ay The y component of the axis of rotation.
----@return number az The z component of the axis of rotation.
-function ModelData:getNodePose(name) end
+function ModelData:getNodePose(node) end
 
 ---Returns local position of a node, relative to its parent.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@return number x The x coordinate.
 ---@return number y The y coordinate.
 ---@return number z The z coordinate.
-function ModelData:getNodePosition(index) end
-
----Returns local position of a node, relative to its parent.
----
----@param name string The name of the node.
----@return number x The x coordinate.
----@return number y The y coordinate.
----@return number z The z coordinate.
-function ModelData:getNodePosition(name) end
+function ModelData:getNodePosition(node) end
 
 ---Returns local scale of a node, relative to its parent.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@return number sx The x scale.
 ---@return number sy The y scale.
 ---@return number sz The z scale.
-function ModelData:getNodeScale(index) end
+function ModelData:getNodeScale(node) end
 
----Returns local scale of a node, relative to its parent.
+---Returns the next sibling of a node (a node with the same parent), or `nil` if the node doesn't have a sibling.
 ---
----@param name string The name of the node.
----@return number sx The x scale.
----@return number sy The y scale.
----@return number sz The z scale.
-function ModelData:getNodeScale(name) end
-
----Returns the index of the skin used by a node.  Skins are collections of joints used for skeletal animation.  A model can have multiple skins, and each node can use at most one skin to drive the animation of its meshes.
+---This, together with `ModelData:getNodeChild`, can be used to iterate the tree of nodes in a model.
 ---
----@param index number The index of the node.
----@return number skin The index of the node's skin, or nil if the node isn't skeletally animated.
-function ModelData:getNodeSkin(index) end
+---@param node string | number The name or index of a node.
+---@return number | nil sibling The index of the node's next sibling, or `nil` if the node doesn't have a sibling.
+function ModelData:getNodeSibling(node) end
 
 ---Returns the index of the skin used by a node.  Skins are collections of joints used for skeletal animation.  A model can have multiple skins, and each node can use at most one skin to drive the animation of its meshes.
 ---
----@param name string The name of the node.
+---@param node string | number The name or index of a node.
 ---@return number skin The index of the node's skin, or nil if the node isn't skeletally animated.
-function ModelData:getNodeSkin(name) end
+function ModelData:getNodeSkin(node) end
 
 ---Returns local transform (position, orientation, and scale) of a node, relative to its parent.
 ---
@@ -1037,7 +1184,7 @@ function ModelData:getNodeSkin(name) end
 ---
 ---For best results when animating, it's recommended to keep the 3 components of the scale the same.
 ---
----@param index number The index of the node.
+---@param node string | number The name or index of a node.
 ---@return number x The x coordinate.
 ---@return number y The y coordinate.
 ---@return number z The z coordinate.
@@ -1048,26 +1195,7 @@ function ModelData:getNodeSkin(name) end
 ---@return number ax The x component of the axis of rotation.
 ---@return number ay The y component of the axis of rotation.
 ---@return number az The z component of the axis of rotation.
-function ModelData:getNodeTransform(index) end
-
----Returns local transform (position, orientation, and scale) of a node, relative to its parent.
----
----#### Notes:
----
----For best results when animating, it's recommended to keep the 3 components of the scale the same.
----
----@param name string The name of the node.
----@return number x The x coordinate.
----@return number y The y coordinate.
----@return number z The z coordinate.
----@return number sx The x scale.
----@return number sy The y scale.
----@return number sz The z scale.
----@return number angle The number of radians the node is rotated around its axis of rotation.
----@return number ax The x component of the axis of rotation.
----@return number ay The y component of the axis of rotation.
----@return number az The z component of the axis of rotation.
-function ModelData:getNodeTransform(name) end
+function ModelData:getNodeTransform(node) end
 
 ---Returns the index of the model's root node.
 ---
@@ -1075,10 +1203,6 @@ function ModelData:getNodeTransform(name) end
 function ModelData:getRootNode() end
 
 ---Returns the number of skins in the model.  A skin is a collection of joints targeted by an animation.
----
----#### Notes:
----
----There is currently a maximum of 256 skins.
 ---
 ---@return number count The number of skins in the model.
 function ModelData:getSkinCount() end
@@ -1092,39 +1216,31 @@ function ModelData:getSkinInverseBindMatrix(skin, joint) end
 
 ---Returns a table with the node indices of the joints in a skin.
 ---
+---#### Notes:
+---
+---There is currently a maximum of 256 joints per skin.
+---
 ---@param skin number The index of a skin.
 ---@return table joints The joints in the skin.
 function ModelData:getSkinJoints(skin) end
 
----Returns the total number of triangles in the model.  This count includes meshes that are attached to multiple nodes, and the count corresponds to the triangles returned by `ModelData:getTriangles`.
+---Returns the width of the model, computed from its axis-aligned bounding box.
 ---
----@return number count The total number of triangles in the model.
-function ModelData:getTriangleCount() end
-
----Returns the data for all triangles in the model.  There are a few differences between this and the mesh-specific functions like `ModelData:getMeshVertex` and `ModelData:getMeshIndex`:
----
----- Only vertex positions are returned, not other vertex attributes.
----- Positions are relative to the origin of the whole model, instead of local to a node.
----- If a mesh is attached to more than one node, its vertices will be in the table multiple times.
----- Vertex indices will be relative to the whole triangle list instead of a mesh.
----
----#### Notes:
----
----After this function is called on a ModelData once, the result is cached.
----
----@return table vertices The triangle vertex positions, returned as a flat (non-nested) table of numbers.  The position of each vertex is given as an x, y, and z coordinate.
----@return table indices A list of numbers representing how to connect the vertices into triangles.  Each number is a 1-based index into the `vertices` table, and every 3 indices form a triangle.
-function ModelData:getTriangles() end
-
----Returns the total vertex count of a model.  This count includes meshes that are attached to multiple nodes, and the count corresponds to the vertices returned by `ModelData:getTriangles`.
----
----@return number count The total number of vertices in the model.
-function ModelData:getVertexCount() end
+---@return number width The width.
+function ModelData:getWidth() end
 
 ---Returns the width of the model, computed from its axis-aligned bounding box.
 ---
----@return number width The width of the model.
-function ModelData:getWidth() end
+---@param mesh number The mesh to get the width of.
+---@return number width The width.
+function ModelData:getWidth(mesh) end
+
+---Returns the width of the model, computed from its axis-aligned bounding box.
+---
+---@param mesh number The mesh to get the width of.
+---@param part number The part to get the width of.
+---@return number width The width.
+function ModelData:getWidth(mesh, part) end
 
 ---A Rasterizer is an object that parses a TTF file, decoding and rendering glyphs from it.
 ---
@@ -1134,15 +1250,18 @@ local Rasterizer = {}
 
 ---Returns the advance metric for a glyph, in pixels.  The advance is the horizontal distance to advance the cursor after rendering the glyph.
 ---
----@param character string A character.
----@return number advance The advance of the glyph, in pixels.
-function Rasterizer:getAdvance(character) end
-
----Returns the advance metric for a glyph, in pixels.  The advance is the horizontal distance to advance the cursor after rendering the glyph.
+---#### Example:
 ---
----@param codepoint number A codepoint.
+---```lua
+---local rasterizer = lovr.data.newRasterizer()
+---local advance1 = rasterizer:getAdvance('H') + rasterizer:getAdvance('i')
+---local advance2 = rasterizer:getAdvance(72) + rasterizer:getAdvance(105)
+---assert(advance1 == advance2)
+---```
+---
+---@param glyph string | number A character or codepoint.
 ---@return number advance The advance of the glyph, in pixels.
-function Rasterizer:getAdvance(codepoint) end
+function Rasterizer:getAdvance(glyph) end
 
 ---Returns the ascent metric of the font, in pixels.  The ascent represents how far any glyph of the font ascends above the baseline.
 ---
@@ -1151,33 +1270,27 @@ function Rasterizer:getAscent() end
 
 ---Returns the bearing metric for a glyph, in pixels.  The bearing is the horizontal distance from the cursor to the edge of the glyph.
 ---
----@param character string A character.
----@return number bearing The bearing of the glyph, in pixels.
-function Rasterizer:getBearing(character) end
-
----Returns the bearing metric for a glyph, in pixels.  The bearing is the horizontal distance from the cursor to the edge of the glyph.
+---#### Example:
 ---
----@param codepoint number A codepoint.
+---```lua
+---local rasterizer = lovr.data.newRasterizer()
+---
+----- In the default font, H is wider than i
+---assert(rasterizer:getBearing('H') > rasterizer:getBearing('i'))
+---```
+---
+---@param glyph string | number A character or codepoint.
 ---@return number bearing The bearing of the glyph, in pixels.
-function Rasterizer:getBearing(codepoint) end
+function Rasterizer:getBearing(glyph) end
 
 ---Returns the bounding box of a glyph, or the bounding box surrounding all glyphs.  Note that font coordinates use a cartesian "y up" coordinate system.
 ---
----@param character string A character.
+---@param glyph string | number A character or codepoint.
 ---@return number x1 The left edge of the bounding box, in pixels.
 ---@return number y1 The bottom edge of the bounding box, in pixels.
 ---@return number x2 The right edge of the bounding box, in pixels.
 ---@return number y2 The top edge of the bounding box, in pixels.
-function Rasterizer:getBoundingBox(character) end
-
----Returns the bounding box of a glyph, or the bounding box surrounding all glyphs.  Note that font coordinates use a cartesian "y up" coordinate system.
----
----@param codepoint number A codepoint.
----@return number x1 The left edge of the bounding box, in pixels.
----@return number y1 The bottom edge of the bounding box, in pixels.
----@return number x2 The right edge of the bounding box, in pixels.
----@return number y2 The top edge of the bounding box, in pixels.
-function Rasterizer:getBoundingBox(codepoint) end
+function Rasterizer:getBoundingBox(glyph) end
 
 ---Returns the bounding box of a glyph, or the bounding box surrounding all glyphs.  Note that font coordinates use a cartesian "y up" coordinate system.
 ---
@@ -1189,44 +1302,30 @@ function Rasterizer:getBoundingBox() end
 
 ---Returns the bezier curve control points defining the shape of a glyph.
 ---
----@param character string A character.
+---@param glyph string | number A character or codepoint.
 ---@param three boolean Whether the control points should be 3D or 2D.
 ---@return table curves A table of curves.  Each curve is a table of numbers representing the control points (2 for a line, 3 for a quadratic curve, etc.).
-function Rasterizer:getCurves(character, three) end
-
----Returns the bezier curve control points defining the shape of a glyph.
----
----@param codepoint number A codepoint.
----@param three boolean Whether the control points should be 3D or 2D.
----@return table curves A table of curves.  Each curve is a table of numbers representing the control points (2 for a line, 3 for a quadratic curve, etc.).
-function Rasterizer:getCurves(codepoint, three) end
+function Rasterizer:getCurves(glyph, three) end
 
 ---Returns the descent metric of the font, in pixels.  The descent represents how far any glyph of the font descends below the baseline.
 ---
 ---@return number descent The descent of the font, in pixels.
 function Rasterizer:getDescent() end
 
----Returns the dimensions of a glyph, or the dimensions of any glyph.
+---Returns the dimensions of a glyph, or the largest dimensions of any glyph in the font.
 ---
----@param character string A character.
+---@param glyph string A character or codepoint.
 ---@return number width The width, in pixels.
 ---@return number height The height, in pixels.
-function Rasterizer:getDimensions(character) end
+function Rasterizer:getDimensions(glyph) end
 
----Returns the dimensions of a glyph, or the dimensions of any glyph.
----
----@param codepoint number A codepoint.
----@return number width The width, in pixels.
----@return number height The height, in pixels.
-function Rasterizer:getDimensions(codepoint) end
-
----Returns the dimensions of a glyph, or the dimensions of any glyph.
+---Returns the dimensions of a glyph, or the largest dimensions of any glyph in the font.
 ---
 ---@return number width The width, in pixels.
 ---@return number height The height, in pixels.
 function Rasterizer:getDimensions() end
 
----Returns the size of the font, in pixels.  This is the size the rasterizer was created with, and defines the size of images it rasterizes.
+---Returns the size of the font, in pixels.  This is the size the rasterizer was created with, and determines the size of images it rasterizes.
 ---
 ---@return number size The font size, in pixels.
 function Rasterizer:getFontSize() end
@@ -1236,96 +1335,69 @@ function Rasterizer:getFontSize() end
 ---@return number count The number of glyphs stored in the font file.
 function Rasterizer:getGlyphCount() end
 
----Returns the height of a glyph, or the maximum height of any glyph.
+---Returns the height of a glyph, or the maximum height of any glyph in the font.
 ---
----@param character string A character.
+---@param glyph string | number A character or codepoint.
 ---@return number height The height, in pixels.
-function Rasterizer:getHeight(character) end
+function Rasterizer:getHeight(glyph) end
 
----Returns the height of a glyph, or the maximum height of any glyph.
----
----@param codepoint number A codepoint.
----@return number height The height, in pixels.
-function Rasterizer:getHeight(codepoint) end
-
----Returns the height of a glyph, or the maximum height of any glyph.
+---Returns the height of a glyph, or the maximum height of any glyph in the font.
 ---
 ---@return number height The height, in pixels.
 function Rasterizer:getHeight() end
 
 ---Returns the kerning between 2 glyphs, in pixels.  Kerning is a slight horizontal adjustment between 2 glyphs to improve the visual appearance.  It will often be negative.
 ---
----@param first string The first character.
----@param second string The second character.
+---@param first string | number The character or codepoint representing the first glyph.
+---@param second string | number The character or codepoint representing the second glyph.
 ---@return number keming The kerning between the two glyphs.
 function Rasterizer:getKerning(first, second) end
-
----Returns the kerning between 2 glyphs, in pixels.  Kerning is a slight horizontal adjustment between 2 glyphs to improve the visual appearance.  It will often be negative.
----
----@param firstCodepoint number The first codepoint.
----@param second string The second character.
----@return number keming The kerning between the two glyphs.
-function Rasterizer:getKerning(firstCodepoint, second) end
-
----Returns the kerning between 2 glyphs, in pixels.  Kerning is a slight horizontal adjustment between 2 glyphs to improve the visual appearance.  It will often be negative.
----
----@param first string The first character.
----@param secondCodepoint number The second codepoint.
----@return number keming The kerning between the two glyphs.
-function Rasterizer:getKerning(first, secondCodepoint) end
-
----Returns the kerning between 2 glyphs, in pixels.  Kerning is a slight horizontal adjustment between 2 glyphs to improve the visual appearance.  It will often be negative.
----
----@param firstCodepoint number The first codepoint.
----@param secondCodepoint number The second codepoint.
----@return number keming The kerning between the two glyphs.
-function Rasterizer:getKerning(firstCodepoint, secondCodepoint) end
 
 ---Returns the leading metric of the font, in pixels.  This is the full amount of space between lines.
 ---
 ---@return number leading The font leading, in pixels.
 function Rasterizer:getLeading() end
 
----Returns the width of a glyph, or the maximum width of any glyph.
+---Returns the width of a glyph, or the maximum width of any glyph in the font.
 ---
----@param character string A character.
+---@param glyph string | number A character or codepoint.
 ---@return number width The width, in pixels.
-function Rasterizer:getWidth(character) end
+function Rasterizer:getWidth(glyph) end
 
----Returns the width of a glyph, or the maximum width of any glyph.
----
----@param codepoint number A codepoint.
----@return number width The width, in pixels.
-function Rasterizer:getWidth(codepoint) end
-
----Returns the width of a glyph, or the maximum width of any glyph.
+---Returns the width of a glyph, or the maximum width of any glyph in the font.
 ---
 ---@return number width The width, in pixels.
 function Rasterizer:getWidth() end
 
 ---Returns whether the Rasterizer can rasterize a set of glyphs.
 ---
----@param ... any Strings (sets of characters) or numbers (character codes) to check for.
+---#### Example:
+---
+---```lua
+---rasterizer = lovr.data.newRasterizer()
+---
+---function lovr.draw(pass)
+---  if rasterizer:hasGlyphs('Ö') then
+---    pass:text('LÖVR!!!', 0, 2, -3)
+---  else
+---    pass:text('>:(', 0, 2, -3)
+---  end
+---end
+---```
+---
+---@param ... string | number Strings (characters) or numbers (codepoints) to check for.
 ---@return boolean hasGlyphs true if the Rasterizer can rasterize all of the supplied characters, false otherwise.
 function Rasterizer:hasGlyphs(...) end
 
 ---Returns an `Image` containing a rasterized glyph.
 ---
----@param character string A character.
+---@param glyph string | number A character or codepoint to rasterize.
 ---@param spread? number The width of the distance field, for signed distance field rasterization.
 ---@param padding? number The number of pixels of padding to add at the edges of the image.
 ---@return Image image The glyph image.  It will be in the `rgba32f` format.
-function Rasterizer:newImage(character, spread, padding) end
+function Rasterizer:newImage(glyph, spread, padding) end
 
----Returns an `Image` containing a rasterized glyph.
----
----@param codepoint number A codepoint.
----@param spread? number The width of the distance field, for signed distance field rasterization.
----@param padding? number The number of pixels of padding to add at the edges of the image.
----@return Image image The glyph image.  It will be in the `rgba32f` format.
-function Rasterizer:newImage(codepoint, spread, padding) end
-
----A Sound stores the data for a sound.  The supported sound formats are OGG, WAV, and MP3.  Sounds cannot be played directly.  Instead, there are `Source` objects in `lovr.audio` that are used for audio playback.  All Source objects are backed by one of these Sounds, and multiple Sources can share a single Sound to reduce memory usage.
+---A Sound stores the data for a sound.  The supported sound formats are OGG, WAV, and MP3.  Sounds cannot be played directly.  Instead, there are `Source` objects in `lovr.audio` that are used for audio playback.  Source objects are backed by one of these Sounds, and multiple Sources can share a single Sound to reduce memory usage.
 ---
 ---Metadata
 ------
@@ -1337,19 +1409,10 @@ function Rasterizer:newImage(codepoint, spread, padding) end
 ---
 ---Sounds can be compressed.  Compressed sounds are stored compressed in memory and are decoded as they are played.  This uses a lot less memory but increases CPU usage during playback.  OGG and MP3 are compressed audio formats.  When creating a sound from a compressed format, there is an option to immediately decode it, storing it uncompressed in memory.  It can be a good idea to decode short sound effects, since they won't use very much memory even when uncompressed and it will improve CPU usage.  Compressed sounds can not be written to using `Sound:setFrames`.
 ---
----Streams
-------
----
----Sounds can be created as a stream by passing `'stream'` as their contents when creating them. Audio frames can be written to the end of the stream, and read from the beginning.  This works well for situations where data is being generated in real time or streamed in from some other data source.
----
----Sources can be backed by a stream and they'll just play whatever audio is pushed to the stream. The audio module also lets you use a stream as a "sink" for an audio device.  For playback devices, this works like loopback, so the mixed audio from all playing Sources will get written to the stream.  For capture devices, all the microphone input will get written to the stream. Conversion between sample formats, channel layouts, and sample rates will happen automatically.
----
----Keep in mind that streams can still only hold a fixed number of frames.  If too much data is written before it is read, older frames will start to get overwritten.  Similary, it's possible to read too much data without writing fast enough.
----
 ---Ambisonics
 ------
 ---
----Ambisonic sounds can be imported from WAVs, but can not yet be played.  Sounds with a `ChannelLayout` of `ambisonic` are stored as first-order full-sphere ambisonics using the AmbiX format (ACN channel ordering and SN3D channel normalization).  The AMB format is supported for import and will automatically get converted to AmbiX.  See `lovr.data.newSound` for more info.
+---Ambisonic sounds represent a sphere of sound coming from all directions.  Ambisonics can be imported from WAV files with 4, 9, or 16 channels.  LÖVR stores ambisonic sounds in the AmbiX format (ACN channel ordering and SN3D channel normalization), automatically converting 4-channel AMB sounds to AmbiX.  Ambisonic sounds can be played using a `Source`, just like other sounds.
 ---@class Sound
 local Sound = {}
 
@@ -1367,12 +1430,7 @@ function Sound:getBlob() end
 ---@return number stride The size of a frame, in bytes.
 function Sound:getByteStride() end
 
----Returns the number of frames that can be written to the Sound.  For stream sounds, this is the number of frames that can be written without overwriting existing data.  For normal sounds, this returns the same value as `Sound:getFrameCount`.
----
----@return number capacity The number of frames that can be written to the Sound.
-function Sound:getCapacity() end
-
----Returns the number of channels in the Sound.  Mono sounds have 1 channel, stereo sounds have 2 channels, and ambisonic sounds have 4 channels.
+---Returns the number of channels in the Sound.  Mono sounds have 1 channel, stereo sounds have 2 channels, and ambisonic sounds will have 4, 9, or 16 channels.
 ---
 ---@return number channels The number of channels in the sound.
 function Sound:getChannelCount() end
@@ -1396,11 +1454,17 @@ function Sound:getDuration() end
 ---@return SampleFormat format The data type of each sample.
 function Sound:getFormat() end
 
----Returns the number of frames in the Sound.  A frame stores one sample for each channel.
+---Returns a single audio frame in the Sound.
 ---
 ---#### Notes:
 ---
----For streams, this returns the number of frames in the stream's buffer.
+---Sounds with a sample format of `f32` will have samples between -1 and 1.  For the `i16` format, samples will be between -32768 and 32767.
+---
+---@param offset number An offset in the sound to read from (0 is the first frame).
+---@return number ... The frame of audio, with 1 number for each channel.
+function Sound:getFrame(offset) end
+
+---Returns the number of frames in the Sound.  A frame stores one sample for each channel.
 ---
 ---@return number frames The number of frames in the Sound.
 function Sound:getFrameCount() end
@@ -1410,10 +1474,8 @@ function Sound:getFrameCount() end
 ---@param count? number The number of frames to read.  If nil, reads as many frames as possible.
 ---
 ---Compressed sounds will automatically be decoded.
----
----Reading from a stream will ignore the source offset and read the oldest frames.
 ---@param srcOffset? number A frame offset to apply to the sound when reading frames.
----@return table t A table containing audio frames.
+---@return {number} t A table containing audio frames.
 ---@return number count The number of frames read.
 function Sound:getFrames(count, srcOffset) end
 
@@ -1423,11 +1485,9 @@ function Sound:getFrames(count, srcOffset) end
 ---@param count? number The number of frames to read.  If nil, reads as many frames as possible.
 ---
 ---Compressed sounds will automatically be decoded.
----
----Reading from a stream will ignore the source offset and read the oldest frames.
 ---@param srcOffset? number A frame offset to apply to the sound when reading frames.
 ---@param dstOffset? number An offset to apply to the destination when writing frames (indices for tables, bytes for Blobs, frames for Sounds).
----@return table t A table containing audio frames.
+---@return {number} t A table containing audio frames.
 ---@return number count The number of frames read.
 function Sound:getFrames(t, count, srcOffset, dstOffset) end
 
@@ -1437,8 +1497,6 @@ function Sound:getFrames(t, count, srcOffset, dstOffset) end
 ---@param count? number The number of frames to read.  If nil, reads as many frames as possible.
 ---
 ---Compressed sounds will automatically be decoded.
----
----Reading from a stream will ignore the source offset and read the oldest frames.
 ---@param srcOffset? number A frame offset to apply to the sound when reading frames.
 ---@param dstOffset? number An offset to apply to the destination when writing frames (indices for tables, bytes for Blobs, frames for Sounds).
 ---@return number count The number of frames read.
@@ -1450,18 +1508,12 @@ function Sound:getFrames(blob, count, srcOffset, dstOffset) end
 ---@param count? number The number of frames to read.  If nil, reads as many frames as possible.
 ---
 ---Compressed sounds will automatically be decoded.
----
----Reading from a stream will ignore the source offset and read the oldest frames.
 ---@param srcOffset? number A frame offset to apply to the sound when reading frames.
 ---@param dstOffset? number An offset to apply to the destination when writing frames (indices for tables, bytes for Blobs, frames for Sounds).
 ---@return number count The number of frames read.
 function Sound:getFrames(sound, count, srcOffset, dstOffset) end
 
 ---Returns the total number of samples in the Sound.
----
----#### Notes:
----
----For streams, this returns the number of samples in the stream's buffer.
 ---
 ---@return number samples The total number of samples in the Sound.
 function Sound:getSampleCount() end
@@ -1476,10 +1528,15 @@ function Sound:getSampleRate() end
 ---@return boolean compressed Whether the Sound is compressed.
 function Sound:isCompressed() end
 
----Returns whether the Sound is a stream.
+---Sets a single audio frame in the Sound.
 ---
----@return boolean stream Whether the Sound is a stream.
-function Sound:isStream() end
+---#### Notes:
+---
+---Sounds with a sample format of `f32` should have samples between -1 and 1.  For the `i16` format, samples should be between -32768 and 32767.
+---
+---@param offset number An offset in the Sound to write to (0 is the first frame).
+---@param ... number Audio samples.
+function Sound:setFrame(offset, ...) end
 
 ---Writes frames to the Sound.
 ---
@@ -1512,88 +1569,12 @@ function Sound:isStream() end
 ---end
 ---```
 ---
----@param t table A table containing frames to write.
+---@param source table | Blob | Sound A table, Blob, or Sound containing audio frames to write.
 ---@param count? number How many frames to write.  If nil, writes as many as possible.
 ---@param dstOffset? number A frame offset to apply when writing the frames.
 ---@param srcOffset? number A frame, byte, or index offset to apply when reading frames from the source.
 ---@return number count The number of frames written.
-function Sound:setFrames(t, count, dstOffset, srcOffset) end
-
----Writes frames to the Sound.
----
----#### Example:
----
----Generate a sine wave.
----
----```lua
----function lovr.load()
----  local length = 1
----  local rate = 48000
----  local frames = length * rate
----  local frequency = 440
----  local volume = 1.0
----
----  sound = lovr.data.newSound(frames, 'f32', 'stereo', rate)
----
----  local data = {}
----  for i = 1, frames do
----    local amplitude = math.sin((i - 1) * frequency / rate * (2 * math.pi)) * volume
----    data[2 * i - 1] = amplitude
----    data[2 * i - 0] = amplitude
----  end
----
----  sound:setFrames(data)
----
----  source = lovr.audio.newSource(sound)
----  source:setLooping(true)
----  source:play()
----end
----```
----
----@param blob Blob A Blob containing frames to write.
----@param count? number How many frames to write.  If nil, writes as many as possible.
----@param dstOffset? number A frame offset to apply when writing the frames.
----@param srcOffset? number A frame, byte, or index offset to apply when reading frames from the source.
----@return number count The number of frames written.
-function Sound:setFrames(blob, count, dstOffset, srcOffset) end
-
----Writes frames to the Sound.
----
----#### Example:
----
----Generate a sine wave.
----
----```lua
----function lovr.load()
----  local length = 1
----  local rate = 48000
----  local frames = length * rate
----  local frequency = 440
----  local volume = 1.0
----
----  sound = lovr.data.newSound(frames, 'f32', 'stereo', rate)
----
----  local data = {}
----  for i = 1, frames do
----    local amplitude = math.sin((i - 1) * frequency / rate * (2 * math.pi)) * volume
----    data[2 * i - 1] = amplitude
----    data[2 * i - 0] = amplitude
----  end
----
----  sound:setFrames(data)
----
----  source = lovr.audio.newSource(sound)
----  source:setLooping(true)
----  source:play()
----end
----```
----
----@param sound Sound Another Sound to copy frames from.
----@param count? number How many frames to write.  If nil, writes as many as possible.
----@param dstOffset? number A frame offset to apply when writing the frames.
----@param srcOffset? number A frame, byte, or index offset to apply when reading frames from the source.
----@return number count The number of frames written.
-function Sound:setFrames(sound, count, dstOffset, srcOffset) end
+function Sound:setFrames(source, count, dstOffset, srcOffset) end
 
 ---This indicates the different node properties that can be animated.
 ---@alias AnimationProperty
@@ -1629,7 +1610,7 @@ function Sound:setFrames(sound, count, dstOffset, srcOffset) end
 ---| "mono"
 ---2 channels.  The first channel is for the left speaker and the second is for the right.
 ---| "stereo"
----4 channels.  Ambisonic channels don't map directly to speakers but instead represent directions in 3D space, sort of like the images of a skybox.  Currently, ambisonic sounds can only be loaded, not played.
+---4, 9, or 16 channels.  Ambisonic channels don't map directly to speakers but instead represent directions in 3D space, sort of like the images of a skybox.
 ---| "ambisonic"
 
 ---These are the different types of attributes that may be present in meshes loaded from models.

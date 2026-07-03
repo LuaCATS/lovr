@@ -24,11 +24,38 @@
 ---@class lovr.thread
 lovr.thread = {}
 
+---Calls a Lua function on a worker thread.  The arguments and returns are sent to and from the thread using an internal Channel.  The function is serialized to bytecode, so it can not access any variables in the parent Lua scope.
+---
+---This is an asynchronous function.  Calling it in a task will yield the task and resume once the call is complete.
+---
+---#### Notes:
+---
+---C methods can be called this way:
+---
+---    world = lovr.physics.newWorld()
+---
+---    -- Do the physics update on a thread
+---    lovr.thread.call(world.update, world, dt)
+---
+---@param f function The function to call.
+---@param ... any Arguments to pass to the function.
+---@return * ... Values returned by the function.
+function lovr.thread.call(f, ...) end
+
 ---Returns a named Channel for communicating between threads.
 ---
 ---@param name string The name of the Channel to get.
 ---@return Channel channel The Channel with the specified name.
 function lovr.thread.getChannel(name) end
+
+---Returns the number of worker threads.  This is controlled by the `t.thread.workers` setting in `lovr.conf`.  By default, the number of workers is set to the number of CPU cores minus one (the main thread is considered a worker too).
+---
+---#### Notes:
+---
+---LÖVR uses worker threads internally to parallelize some work, including physics, asset loading, and graphics.  Additionally, custom Lua code can be offloaded to worker threads using `lovr.thread.call`, and any asynchronous function called in a task will run on a worker thread.
+---
+---@return number workers The number of workers.
+function lovr.thread.getWorkerCount() end
 
 ---Creates a new unnamed `Channel` object.  Usually it's more convenient to use `lovr.thread.getChannel`, since other threads can use that function to query the channel by name.  Unnamed channels don't require a unique name, but they need to be sent to other threads somehow (e.g. on a different Channel or as an argument to `Thread:start`).
 ---
@@ -55,21 +82,9 @@ function lovr.thread.newThread(code) end
 ---
 ---The string argument is assumed to be a filename if there isn't a newline in the first 1024 characters.  For really short thread code, an extra newline can be added to trick LÖVR into loading it properly.
 ---
----@param filename string A file containing code to run in the Thread.
+---@param file string | Blob A filename or Blob containing code to run in the Thread.
 ---@return Thread thread The new Thread.
-function lovr.thread.newThread(filename) end
-
----Creates a new Thread from Lua code.
----
----#### Notes:
----
----The Thread won\'t start running immediately.  Use `Thread:start` to start it.
----
----The string argument is assumed to be a filename if there isn't a newline in the first 1024 characters.  For really short thread code, an extra newline can be added to trick LÖVR into loading it properly.
----
----@param blob Blob The code to run in the Thread.
----@return Thread thread The new Thread.
-function lovr.thread.newThread(blob) end
+function lovr.thread.newThread(file) end
 
 ---A Channel is an object used to communicate between `Thread` objects.  Different threads can send messages on the same Channel to communicate with each other.  Messages can be sent and received on a Channel using `Channel:push` and `Channel:pop`, and are received in a first-in-first-out fashion. The following types of data can be passed through Channels: nil, boolean, number, string, lightuserdata, table, vector, and any LÖVR object.
 ---@class Channel
@@ -106,7 +121,7 @@ function Channel:peek() end
 ---
 ---Threads can get stuck forever waiting on Channel messages, so be careful.
 ---
----@param wait? number How long to wait for a message to be popped, in seconds.  `true` can be used to wait forever and `false` can be used to avoid waiting.
+---@param wait? number | boolean How long to wait for a message to be popped, in seconds.  `true` can be used to wait forever and `false` can be used to avoid waiting.
 ---@return * message The received message, or `nil` if nothing was received.
 function Channel:pop(wait) end
 
@@ -117,7 +132,7 @@ function Channel:pop(wait) end
 ---Threads can get stuck forever waiting on Channel messages, so be careful.
 ---
 ---@param message any The message to push.
----@param wait? number How long to wait for the message to be popped, in seconds.  `true` can be used to wait forever and `false` can be used to avoid waiting.
+---@param wait? number | boolean How long to wait for the message to be popped, in seconds.  `true` can be used to wait forever and `false` can be used to avoid waiting.
 ---@return number id The ID of the pushed message.
 ---@return boolean read Whether the message was read by another thread before the wait timeout.
 function Channel:push(message, wait) end
@@ -130,7 +145,7 @@ local Thread = {}
 
 ---Returns the message for the error that occurred on the Thread, or nil if no error has occurred.
 ---
----@return string error The error message, or `nil` if no error has occurred on the Thread.
+---@return string | nil error The error message, or `nil` if no error has occurred on the Thread.
 function Thread:getError() end
 
 ---Returns whether or not the Thread is currently running.
@@ -142,7 +157,7 @@ function Thread:isRunning() end
 ---
 ---#### Notes:
 ---
----The arguments can be nil, booleans, numbers, strings, or LÖVR objects.
+---The arguments can be nil, booleans, numbers, strings, lightuserdata, tables, vectors, or LÖVR objects.
 ---
 ---#### Example:
 ---

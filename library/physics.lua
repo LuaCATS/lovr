@@ -31,7 +31,7 @@ function lovr.physics.newBallJoint(colliderA, colliderB, x, y, z) end
 ---
 ---@param colliderA Collider The first collider to attach the Joint to, or `nil` to attach the joint to a fixed position in the World.
 ---@param colliderB Collider The second collider to attach the Joint to.
----@param anchor Vec3 The joint anchor point, in world coordinates.
+---@param anchor vector The joint anchor point, in world coordinates.
 ---@return BallJoint ball The new BallJoint.
 function lovr.physics.newBallJoint(colliderA, colliderB, anchor) end
 
@@ -91,43 +91,29 @@ function lovr.physics.newConeJoint(colliderA, colliderB, x, y, z, ax, ay, az) en
 ---
 ---@param colliderA Collider The first collider to attach the Joint to, or `nil` to attach the joint to a fixed position in the World.
 ---@param colliderB Collider The second collider to attach the Joint to.
----@param anchor Vec3 The joint anchor point, in world space.
----@param axis Vec3 The cone axis, in world space.
+---@param anchor vector The joint anchor point, in world space.
+---@param axis vector The cone axis, in world space.
 ---@return ConeJoint cone The new ConeJoint.
 function lovr.physics.newConeJoint(colliderA, colliderB, anchor, axis) end
 
 ---Creates a new ConvexShape.
 ---
 ---@param points table A list of vertices to compute a convex hull from.  Can be a table of tables (each with 3 numbers) or a table of numbers (every 3 numbers form a 3D point).
----@param scale? number A scale to apply to the points.
+---@param scale? vector An optional scale to apply to the points.  Can also be provided as 3 numbers.
 ---@return ConvexShape shape The new ConvexShape.
 function lovr.physics.newConvexShape(points, scale) end
 
 ---Creates a new ConvexShape.
 ---
----@param modelData ModelData The ModelData to compute a convex hull from.
----@param scale? number A scale to apply to the points.
+---@param object ModelData | Mesh An object to use for the points of the convex hull.
+---@param scale? vector An optional scale to apply to the points.  Can also be provided as 3 numbers.
 ---@return ConvexShape shape The new ConvexShape.
-function lovr.physics.newConvexShape(modelData, scale) end
-
----Creates a new ConvexShape.
----
----@param model Model The Model to compute a convex hull from.
----@param scale? number A scale to apply to the points.
----@return ConvexShape shape The new ConvexShape.
-function lovr.physics.newConvexShape(model, scale) end
-
----Creates a new ConvexShape.
----
----@param mesh Mesh The Mesh to compute a convex hull from.  It must use the `cpu` storage mode.
----@param scale? number A scale to apply to the points.
----@return ConvexShape shape The new ConvexShape.
-function lovr.physics.newConvexShape(mesh, scale) end
+function lovr.physics.newConvexShape(object, scale) end
 
 ---Creates a new ConvexShape.
 ---
 ---@param template ConvexShape An existing ConvexShape to clone.
----@param scale? number A scale to apply to the points.
+---@param scale? vector An optional scale to apply to the points.  Can also be provided as 3 numbers.
 ---@return ConvexShape shape The new ConvexShape.
 function lovr.physics.newConvexShape(template, scale) end
 
@@ -171,8 +157,8 @@ function lovr.physics.newDistanceJoint(colliderA, colliderB, x1, y1, z1, x2, y2,
 ---
 ---@param colliderA Collider The first collider to attach the Joint to, or `nil` to attach the joint to a fixed position in the World.
 ---@param colliderB Collider The second collider to attach the Joint to.
----@param first Vec3 The first anchor point, in world coordinates.
----@param second Vec3 The second anchor point, in world coordinates.
+---@param first vector The first anchor point, in world coordinates.
+---@param second vector The second anchor point, in world coordinates.
 ---@return DistanceJoint joint The new DistanceJoint.
 function lovr.physics.newDistanceJoint(colliderA, colliderB, first, second) end
 
@@ -209,8 +195,8 @@ function lovr.physics.newHingeJoint(colliderA, colliderB, x, y, z, ax, ay, az) e
 ---
 ---@param colliderA Collider The first collider to attach the Joint to, or `nil` to attach the joint to a fixed position in the World.
 ---@param colliderB Collider The second collider to attach the Joint to.
----@param anchor Vec3 The anchor point, in world coordinates.
----@param axis Vec3 The hinge axis direction.
+---@param anchor vector The anchor point, in world coordinates.
+---@param axis vector The hinge axis direction.
 ---@return HingeJoint hinge The new HingeJoint.
 function lovr.physics.newHingeJoint(colliderA, colliderB, anchor, axis) end
 
@@ -218,35 +204,21 @@ function lovr.physics.newHingeJoint(colliderA, colliderB, anchor, axis) end
 ---
 ---@param vertices table The table of vertices in the mesh.  Each vertex is a table with 3 numbers.
 ---@param indices table A table of triangle indices representing how the vertices are connected in the Mesh.
----@param scale? number A scale to apply to the mesh vertices.
+---@param scale? vector An optional scale to apply to the mesh vertices.  Can also be provided as 3 numbers.
 ---@return MeshShape mesh The new MeshShape.
 function lovr.physics.newMeshShape(vertices, indices, scale) end
 
 ---Creates a new MeshShape.
 ---
----@param modelData ModelData The ModelData to use the vertices from.
----@param scale? number A scale to apply to the mesh vertices.
+---@param object ModelData | Mesh An object to use the triangles from.  Meshes must use the `cpu` storage mode.
+---@param scale? vector An optional scale to apply to the mesh vertices.  Can also be provided as 3 numbers.
 ---@return MeshShape mesh The new MeshShape.
-function lovr.physics.newMeshShape(modelData, scale) end
-
----Creates a new MeshShape.
----
----@param model Model A Model to use for the mesh data.  Similar to calling `Model:getTriangles` and passing it to this function, but has better performance.
----@param scale? number A scale to apply to the mesh vertices.
----@return MeshShape mesh The new MeshShape.
-function lovr.physics.newMeshShape(model, scale) end
-
----Creates a new MeshShape.
----
----@param mesh Mesh The Mesh to use the vertices from.  It must use the `cpu` storage mode.
----@param scale? number A scale to apply to the mesh vertices.
----@return MeshShape mesh The new MeshShape.
-function lovr.physics.newMeshShape(mesh, scale) end
+function lovr.physics.newMeshShape(object, scale) end
 
 ---Creates a new MeshShape.
 ---
 ---@param template MeshShape An existing MeshShape to clone.
----@param scale? number A scale to apply to the mesh vertices.
+---@param scale? vector An optional scale to apply to the mesh vertices.  Can also be provided as 3 numbers.
 ---@return MeshShape mesh The new MeshShape.
 function lovr.physics.newMeshShape(template, scale) end
 
@@ -272,7 +244,7 @@ function lovr.physics.newSliderJoint(colliderA, colliderB, ax, ay, az) end
 ---
 ---@param colliderA Collider The first collider to attach the Joint to, or `nil` to attach the joint to a fixed position in the World.
 ---@param colliderB Collider The second collider to attach the Joint to.
----@param axis Vec3 The slider axis direction.
+---@param axis vector The slider axis direction.
 ---@return SliderJoint slider The new SliderJoint.
 function lovr.physics.newSliderJoint(colliderA, colliderB, axis) end
 
@@ -290,7 +262,7 @@ function lovr.physics.newSphereShape(radius) end
 ---
 ---#### Notes:
 ---
----A Shape can be attached to a Collider using `Collider:addShape`. For immobile terrain use the `Collider:setKinematic`.
+---Colliders with terrain shapes are always kinematic.
 ---
 ---@param scale number The width and depth of the terrain, in meters.
 ---@return TerrainShape terrain The new TerrainShape.
@@ -300,7 +272,7 @@ function lovr.physics.newTerrainShape(scale) end
 ---
 ---#### Notes:
 ---
----A Shape can be attached to a Collider using `Collider:addShape`. For immobile terrain use the `Collider:setKinematic`.
+---Colliders with terrain shapes are always kinematic.
 ---
 ---@param scale number The width and depth of the terrain, in meters.
 ---@param heightmap Image A heightmap image describing the terrain elevation at different points.  The red channel brightness of each pixel determines the elevation at corresponding coordinates.
@@ -312,10 +284,10 @@ function lovr.physics.newTerrainShape(scale, heightmap, stretch) end
 ---
 ---#### Notes:
 ---
----A Shape can be attached to a Collider using `Collider:addShape`. For immobile terrain use the `Collider:setKinematic`.
+---Colliders with terrain shapes are always kinematic.
 ---
 ---@param scale number The width and depth of the terrain, in meters.
----@param callback function A function that computes terrain height from x and z coordinates.  The x and z inputs will range from `-scale / 2` to `scale / 2`.
+---@param callback function A function that computes terrain height from x and z coordinates.  The x and z inputs will range from `-scale / 2` to `scale / 2`.  The callback can return nil to create holes.
 ---@param samples? number The number of samples taken across the x and z dimensions.  More samples will result in higher terrain fidelity, but use more CPU and memory.
 ---@return TerrainShape terrain The new TerrainShape.
 function lovr.physics.newTerrainShape(scale, callback, samples) end
@@ -447,7 +419,7 @@ function Collider:applyAngularImpulse(x, y, z) end
 ---
 ---Impulses are accumulated and processed during `World:update`.
 ---
----@param impulse Vec3 The world-space impulse vector, in newton meter seconds.
+---@param impulse vector The world-space impulse vector, in newton meter seconds.
 function Collider:applyAngularImpulse(impulse) end
 
 ---Applies a force to the Collider.
@@ -493,7 +465,7 @@ function Collider:applyForce(x, y, z, px, py, pz) end
 ---
 ---Forces are accumulated and processed during `World:update`.
 ---
----@param force Vec3 The world-space force vector, in newtons.
+---@param force vector The world-space force vector, in newtons.
 function Collider:applyForce(force) end
 
 ---Applies a force to the Collider.
@@ -506,8 +478,8 @@ function Collider:applyForce(force) end
 ---
 ---Forces are accumulated and processed during `World:update`.
 ---
----@param force Vec3 The world-space force vector, in newtons.
----@param position Vec3 The position to apply the force at, in world space.
+---@param force vector The world-space force vector, in newtons.
+---@param position vector The position to apply the force at, in world space.
 function Collider:applyForce(force, position) end
 
 ---Applies a linear impulse to the Collider.
@@ -559,7 +531,7 @@ function Collider:applyLinearImpulse(x, y, z, px, py, pz) end
 ---
 ---Impulses are accumulated and processed during `World:update`.
 ---
----@param impulse Vec3 The world-space impulse vector, in newton seconds.
+---@param impulse vector The world-space impulse vector, in newton seconds.
 function Collider:applyLinearImpulse(impulse) end
 
 ---Applies a linear impulse to the Collider.
@@ -574,8 +546,8 @@ function Collider:applyLinearImpulse(impulse) end
 ---
 ---Impulses are accumulated and processed during `World:update`.
 ---
----@param impulse Vec3 The world-space impulse vector, in newton seconds.
----@param position Vec3 The position to apply the impulse at, in world space.
+---@param impulse vector The world-space impulse vector, in newton seconds.
+---@param position vector The position to apply the impulse at, in world space.
 function Collider:applyLinearImpulse(impulse, position) end
 
 ---Applies torque to the Collider.
@@ -603,7 +575,7 @@ function Collider:applyTorque(x, y, z) end
 ---
 ---Forces are accumulated and processed during `World:update`.
 ---
----@param torque Vec3 The world-space torque vector, in newton meters.
+---@param torque vector The world-space torque vector, in newton meters.
 function Collider:applyTorque(torque) end
 
 ---Destroys the Collider, removing it from the World and destroying all Shapes and Joints attached to it.
@@ -761,7 +733,7 @@ function Collider:getLinearVelocityFromLocalPoint(x, y, z) end
 
 ---Returns the linear velocity of a point on the Collider.  This includes the velocity of the center of mass plus the angular velocity at that point.
 ---
----@param point Vec3 The local-space point.
+---@param point vector The local-space point.
 ---@return number vx The x velocity of the point.
 ---@return number vy The y velocity of the point.
 ---@return number vz The z velocity of the point.
@@ -779,7 +751,7 @@ function Collider:getLinearVelocityFromWorldPoint(x, y, z) end
 
 ---Returns the linear velocity of a point on the Collider.  This includes the velocity of the center of mass plus the angular velocity at that point.
 ---
----@param point Vec3 The world-space point.
+---@param point vector The world-space point.
 ---@return number vx The x velocity of the point.
 ---@return number vy The y velocity of the point.
 ---@return number vz The z velocity of the point.
@@ -797,7 +769,7 @@ function Collider:getLocalPoint(wx, wy, wz) end
 
 ---Transforms a point from world coordinates into local coordinates relative to the Collider.
 ---
----@param point Vec3 The world point.
+---@param point vector The world point.
 ---@return number x The x component of the local point.
 ---@return number y The y component of the local point.
 ---@return number z The z component of the local point.
@@ -815,7 +787,7 @@ function Collider:getLocalVector(wx, wy, wz) end
 
 ---Transforms a direction vector from world space to local space.
 ---
----@param vector Vec3 The world vector.
+---@param vector vector The world vector.
 ---@return number x The x component of the local vector.
 ---@return number y The y component of the local vector.
 ---@return number z The z component of the local vector.
@@ -891,10 +863,6 @@ function Collider:getRestitution() end
 ---
 ---For the common case where a Collider only has a single shape, this is more convenient and efficient than extracting it from the table returned by `Collider:getShapes`.  It is always equivalent to `Collider:getShapes()[1]`.
 ---
----#### Notes:
----
----This may return `nil` if the Collider doesn't have any shapes attached to it.
----
 ---#### Example:
 ---
 ---```lua
@@ -906,7 +874,7 @@ function Collider:getRestitution() end
 ---end
 ---```
 ---
----@return Shape shape One of the `Shape` objects attached to the Collider.
+---@return Shape | nil shape One of the `Shape` objects attached to the Collider, or `nil` if the Collider doesn't have any shapes attached to it.
 function Collider:getShape() end
 
 ---Returns a list of Shapes attached to the Collider.
@@ -920,7 +888,7 @@ function Collider:getShapes() end
 ---
 ---The list of available tags is set in `lovr.physics.newWorld`.
 ---
----@return string tag The Collider's tag.
+---@return string | nil tag The Collider's tag.
 function Collider:getTag() end
 
 ---Returns the Lua value associated with the Collider.
@@ -963,7 +931,7 @@ function Collider:getWorldPoint(x, y, z) end
 
 ---Transforms a local point relative to the collider to a point in world coordinates.
 ---
----@param point Vec3 The local point.
+---@param point vector The local point.
 ---@return number wx The x component of the world point.
 ---@return number wy The y component of the world point.
 ---@return number wz The z component of the world point.
@@ -981,7 +949,7 @@ function Collider:getWorldVector(x, y, z) end
 
 ---Transforms a direction vector from local space to world space.
 ---
----@param vector Vec3 The local vector.
+---@param vector vector The local vector.
 ---@return number wx The x component of the world vector.
 ---@return number wy The y component of the world vector.
 ---@return number wz The z component of the world vector.
@@ -1030,6 +998,7 @@ function Collider:isEnabled() end
 ---Returns whether the Collider is currently ignoring gravity.
 ---
 ---@return boolean ignored Whether gravity is ignored for this Collider.
+---@deprecated
 function Collider:isGravityIgnored() end
 
 ---Returns whether the Collider is kinematic.
@@ -1104,13 +1073,32 @@ function Collider:isSensor() end
 ---@return boolean sleepy Whether the Collider can go to sleep.
 function Collider:isSleepingAllowed() end
 
----TODO
+---Moves the collider towards a destination pose.  The velocity of the collider is set so that the collider reaches the destination in `dt` seconds.
 ---
 ---#### Notes:
 ---
+---The collider doesn't stop when it reaches the destination, this is just a shorthand for setting its velocity.
 ---
+---@param x number The x position of the target, in meters.
+---@param y number The y position of the target, in meters.
+---@param z number The z position of the target, in meters.
+---@param angle number The angle of the target orientation.
+---@param ax number The x component of the target axis of rotation.
+---@param ay number The y component of the target axis of rotation.
+---@param az number The z component of the target axis of rotation.
+---@param dt number How long it should take to reach the destination.
+function Collider:moveKinematic(x, y, z, angle, ax, ay, az, dt) end
+
+---Moves the collider towards a destination pose.  The velocity of the collider is set so that the collider reaches the destination in `dt` seconds.
 ---
-function Collider:moveKinematic() end
+---#### Notes:
+---
+---The collider doesn't stop when it reaches the destination, this is just a shorthand for setting its velocity.
+---
+---@param position vector The position of the target, in meters.
+---@param orientation quaternion The target orientation.
+---@param dt number How long it should take to reach the destination.
+function Collider:moveKinematic(position, orientation, dt) end
 
 ---Removes a Shape from the Collider.
 ---
@@ -1181,7 +1169,7 @@ function Collider:setAngularVelocity(vx, vy, vz) end
 ---
 ---If the Collider has a tag that was marked as static when the World was created, then the Collider can not move and this function will do nothing.
 ---
----@param velocity Vec3 The angular velocity of the Collider.
+---@param velocity vector The angular velocity of the Collider.
 function Collider:setAngularVelocity(velocity) end
 
 ---Enables or disables automatic mass for the Collider.
@@ -1234,7 +1222,7 @@ function Collider:setCenterOfMass(x, y, z) end
 ---
 ---Use `Collider:resetMassData` to reset the center and other mass properties based on the Collider's shapes.
 ---
----@param center Vec3 The center of mass.
+---@param center vector The center of mass.
 function Collider:setCenterOfMass(center) end
 
 ---Sets whether the Collider uses continuous collision detection.
@@ -1262,8 +1250,10 @@ function Collider:setContinuous(continuous) end
 ---
 ---When all rotation axes are disabled, `Collider:getInertia` will return zero/identity.
 ---
----@param translation string A string containing the world-space axes the Collider is allowed to move on.  The string should have 'x', 'y', and 'z' letters representing the axes to enable.  Use nil or an empty string to disable all translation.
----@param rotation string A string containing the world-space axes the Collider is allowed to rotate on.  The string should have 'x', 'y', and 'z' letters representing the axes to enable.  Use nil or an empty string to disable all rotation.
+---This function does nothing if the Collider is kinematic.
+---
+---@param translation? string A string containing the world-space axes the Collider is allowed to move on.  The string should have 'x', 'y', and 'z' letters representing the axes to enable.  Use nil or an empty string to disable all translation.
+---@param rotation? string A string containing the world-space axes the Collider is allowed to rotate on.  The string should have 'x', 'y', and 'z' letters representing the axes to enable.  Use nil or an empty string to disable all rotation.
 function Collider:setDegreesOfFreedom(translation, rotation) end
 
 ---Enables or disables the Collider.  When a Collider is disabled, it is removed from the World and does not impact the physics simulation in any way.  The Collider keeps all of its state and can be re-enabled to add it back to the World.
@@ -1287,6 +1277,7 @@ function Collider:setFriction(friction) end
 ---Sets whether the Collider should ignore gravity.
 ---
 ---@param ignored boolean Whether gravity should be ignored.
+---@deprecated
 function Collider:setGravityIgnored(ignored) end
 
 ---Sets the gravity scale of the Collider.  This is multiplied with the global gravity from the World, so 1.0 is regular gravity, 0.0 will ignore gravity, etc.
@@ -1335,8 +1326,8 @@ function Collider:setInertia(dx, dy, dz, angle, ax, ay, az) end
 ---
 ---If the Collider is kinematic or all rotation axes are disabled, the collider behaves as though it has infinite inertia, and this function will do nothing.
 ---
----@param diagonal Vec3 A vector containing the 3 elements of a diagonal matrix.
----@param rotation Quat The inertia rotation.
+---@param diagonal vector A vector containing the 3 elements of a diagonal matrix.
+---@param rotation quaternion The inertia rotation.
 function Collider:setInertia(diagonal, rotation) end
 
 ---Sets whether the Collider is kinematic.
@@ -1406,7 +1397,7 @@ function Collider:setLinearVelocity(vx, vy, vz) end
 ---
 ---Currently, velocity is clamped to 500 meters per second to improve stability of the simulation.
 ---
----@param velocity Vec3 The new velocity, in meters per second.
+---@param velocity vector The new velocity, in meters per second.
 function Collider:setLinearVelocity(velocity) end
 
 ---Sets the mass of the Collider.
@@ -1440,7 +1431,7 @@ function Collider:setOrientation(angle, ax, ay, az) end
 
 ---Sets the orientation of the Collider in angle/axis representation.
 ---
----@param orientation Quat The orientation of the Collider.
+---@param orientation quaternion The orientation of the Collider.
 function Collider:setOrientation(orientation) end
 
 ---Sets the position and orientation of the Collider.
@@ -1456,8 +1447,8 @@ function Collider:setPose(x, y, z, angle, ax, ay, az) end
 
 ---Sets the position and orientation of the Collider.
 ---
----@param position Vec3 The position of the Collider, in meters.
----@param orientation Quat The orientation of the Collider.
+---@param position vector The position of the Collider, in meters.
+---@param orientation quaternion The orientation of the Collider.
 function Collider:setPose(position, orientation) end
 
 ---Sets the position of the Collider.
@@ -1469,7 +1460,7 @@ function Collider:setPosition(x, y, z) end
 
 ---Sets the position of the Collider.
 ---
----@param position Vec3 The position of the Collider, in meters.
+---@param position vector The position of the Collider, in meters.
 function Collider:setPosition(position) end
 
 ---Sets the restitution of the Collider.  Restitution makes a Collider bounce when it collides with other objects.  A restitution value of zero would result in an inelastic collision response, whereas 1.0 would result in an elastic collision that preserves all of the velocity.
@@ -1700,12 +1691,12 @@ function Contact:setSurfaceVelocity(x, y, z) end
 
 ---Sets the world space surface velocity of the Contact.  This can be used to achieve a conveyor belt effect.
 ---
----@param velocity Vec3 The surface velocity.
+---@param velocity vector The surface velocity.
 function Contact:setSurfaceVelocity(velocity) end
 
 ---A type of `Shape` that is a convex hull of a collection of points, allowing for custom collision shapes.  It is similar to a `MeshShape`, but it is not required to be kinematic, and it will use the convex hull of the mesh instead of using the exact triangles of the object.
 ---
----Convex shapes can be created from a `Model`, `ModelData`, `Mesh`, or a table of point positions, similar to `MeshShape`.
+---Convex shapes can be created from a `ModelData`, `Mesh`, or a table of point positions, similar to `MeshShape`.
 ---
 ---Convex shapes can be cloned by passing in an existing ConvexShape to clone:
 ---
@@ -2178,7 +2169,7 @@ function Shape:containsPoint(x, y, z) end
 ---
 ---This takes into account the pose of the Shape's collider (if any), as well as its local offset set with `Shape:setOffset`.
 ---
----@param point Vec3 The point, as a vector.
+---@param point vector The point, as a vector.
 ---@return boolean hit Whether the point is inside the Shape.
 function Shape:containsPoint(point) end
 
@@ -2348,22 +2339,22 @@ function Shape:isDestroyed() end
 ---@return number nx The x component of the normal vector.
 ---@return number ny The y component of the normal vector.
 ---@return number nz The z component of the normal vector.
----@return number triangle The index of the triangle that was hit, or `nil` if this is not a MeshShape.
+---@return number | nil triangle The index of the triangle that was hit, or `nil` if this is not a MeshShape.
 function Shape:raycast(x1, y1, z1, x2, y2, z2) end
 
 ---Casts a ray against the Shape and returns the first intersection.
 ---
 ---This takes into account the pose of the Shape's collider (if any), as well as its local offset set with `Shape:setOffset`.
 ---
----@param origin Vec3 The origin of the ray.
----@param endpoint Vec3 The endpoint of the ray.
+---@param origin vector The origin of the ray.
+---@param endpoint vector The endpoint of the ray.
 ---@return number x The x coordinate of the impact point.
 ---@return number y The y coordinate of the impact point.
 ---@return number z The z coordinate of the impact point.
 ---@return number nx The x component of the normal vector.
 ---@return number ny The y component of the normal vector.
 ---@return number nz The z component of the normal vector.
----@return number triangle The index of the triangle that was hit, or `nil` if this is not a MeshShape.
+---@return number | nil triangle The index of the triangle that was hit, or `nil` if this is not a MeshShape.
 function Shape:raycast(origin, endpoint) end
 
 ---Sets the density of the Shape, in kilograms per cubic meter.  The density, combined with the volume of the Shape, determines the Shape's overall mass.
@@ -2392,8 +2383,8 @@ function Shape:setOffset(x, y, z, angle, ax, ay, az) end
 
 ---Sets the local offset of the Shape.  When the Shape is attached to a Collider, it will have this offset relative to the Collider.
 ---
----@param position Vec3 The local offset of the Shape, in meters.
----@param rotation Quat The local rotation of the Shape, in meters.
+---@param position vector The local offset of the Shape, in meters.
+---@param rotation quaternion The local rotation of the Shape, in meters.
 function Shape:setOffset(position, rotation) end
 
 ---Associates a Lua value with the Shape.
@@ -2658,6 +2649,7 @@ function World:enableCollisionBetween(tag1, tag2) end
 ---
 ---@return number damping The angular damping.
 ---@return number threshold Velocity limit below which the damping is not applied.
+---@deprecated
 function World:getAngularDamping() end
 
 ---- Returns the callbacks assigned to the World.
@@ -2677,7 +2669,7 @@ function World:getColliderCount() end
 
 ---Returns a list of colliders in the world.  This includes sleeping and disabled colliders.
 ---
----@return table colliders The list of `Collider` objects in the World.
+---@return {Collider} colliders The list of `Collider` objects in the World.
 function World:getColliders() end
 
 ---Returns the World's gravity.  Gravity is a constant acceleration applied to all colliders.  The default is `(0, -9.81, 0)` meters per second squared, causing colliders to fall downward.
@@ -2700,7 +2692,7 @@ function World:getJointCount() end
 
 ---Returns a table with all the joints in the World.  This includes disabled joints.
 ---
----@return table joints The list of `Joint` objects in the World.
+---@return {Joint} joints The list of `Joint` objects in the World.
 function World:getJoints() end
 
 ---Returns the linear damping parameters of the World.  Linear damping is similar to drag or air resistance, slowing down colliders over time as they move.
@@ -2713,6 +2705,7 @@ function World:getJoints() end
 ---
 ---@return number damping The linear damping.
 ---@return number threshold Velocity limit below which the damping is not applied.
+---@deprecated
 function World:getLinearDamping() end
 
 ---Returns the response time factor of the World.
@@ -2722,16 +2715,18 @@ function World:getLinearDamping() end
 ---The value can be any positive number.  It can be changed on a per-joint basis for `DistanceJoint` and `BallJoint` objects.
 ---
 ---@return number responseTime The response time setting for the World.
+---@deprecated
 function World:getResponseTime() end
 
 ---Returns the step count of the World.  The step count influences how many steps are taken during a call to `World:update`.  A higher number of steps will be slower, but more accurate.  The default step count is 20.
 ---
 ---@return number steps The step count.
+---@deprecated
 function World:getStepCount() end
 
 ---Returns the list of collision tags that were specified when the World was created.  Tags are assigned to colliders using `Collider:setTag`, and collision can be enabled/disabled for pairs of tags with `World:enableCollisionBetween` and `World:disableCollisionBetween`.
 ---
----@return table tags A table of collision tags (strings).
+---@return {string} tags A table of collision tags (strings).
 function World:getTags() end
 
 ---Returns the tightness of joints in the World.
@@ -2739,6 +2734,7 @@ function World:getTags() end
 ---The tightness controls how much force is applied to colliders connected by joints.  With a value of 0, no force will be applied and joints won't have any effect.  With a tightness of 1, a strong force will be used to try to keep the Colliders constrained.  A tightness larger than 1 will overcorrect the joints, which can sometimes be desirable.  Negative tightness values are not supported.
 ---
 ---@return number tightness The tightness of the World.
+---@deprecated
 function World:getTightness() end
 
 ---Interpolates collider poses between their previous pose and their current pose.  Methods like `Collider:getPosition` and `Collider:getOrientation` will return the smoothed values.
@@ -2818,6 +2814,7 @@ function World:isDestroyed() end
 ---Colliders can be manually put to sleep or woken up using `Collider:setAwake`.
 ---
 ---@return boolean allowed Whether colliders can sleep.
+---@deprecated
 function World:isSleepingAllowed() end
 
 ---Adds a Collider to the world and attaches a `BoxShape`.
@@ -2841,8 +2838,8 @@ function World:newBoxCollider(x, y, z, width, height, depth) end
 ---
 ---This will throw an error if there are too many colliders in the world.  The limit defaults to 16384 and can be changed in `lovr.physics.newWorld`.
 ---
----@param position Vec3 The position of the center of the box, in meters.
----@param size Vec3 The size of the box, in meters.
+---@param position vector The position of the center of the box, in meters.
+---@param size vector The size of the box, in meters.
 ---@return Collider collider The new Collider.
 function World:newBoxCollider(position, size) end
 
@@ -2870,7 +2867,7 @@ function World:newCapsuleCollider(x, y, z, radius, length) end
 ---
 ---The length of the capsule goes along its local Z axis.
 ---
----@param position Vec3 The position of the center of the capsule, in meters.
+---@param position vector The position of the center of the capsule, in meters.
 ---@param radius? number The radius of the capsule, in meters.
 ---@param length? number The length of the capsule, not including the caps, in meters.
 ---@return Collider collider The new Collider.
@@ -2916,7 +2913,7 @@ function World:newCollider(x, y, z) end
 ---end
 ---```
 ---
----@param position Vec3 The position of the Collider.
+---@param position vector The position of the Collider.
 ---@return Collider collider The new Collider.
 function World:newCollider(position) end
 
@@ -2940,7 +2937,7 @@ function World:newConvexCollider(x, y, z, points, scale) end
 ---
 ---This will throw an error if there are too many colliders in the world.  The limit defaults to 16384 and can be changed in `lovr.physics.newWorld`.
 ---
----@param position Vec3 The position of the center of the capsule, in meters.
+---@param position vector The position of the center of the capsule, in meters.
 ---@param points table A list of vertices to compute a convex hull from.  Can be a table of tables (each with 3 numbers) or a table of numbers (every 3 numbers form a 3D point).
 ---@param scale? number A scale to apply to the points.
 ---@return Collider collider The new Collider.
@@ -2966,37 +2963,11 @@ function World:newConvexCollider(x, y, z, modelData, scale) end
 ---
 ---This will throw an error if there are too many colliders in the world.  The limit defaults to 16384 and can be changed in `lovr.physics.newWorld`.
 ---
----@param position Vec3 The position of the center of the capsule, in meters.
+---@param position vector The position of the center of the capsule, in meters.
 ---@param modelData ModelData The ModelData to compute a convex hull from.
 ---@param scale? number A scale to apply to the points.
 ---@return Collider collider The new Collider.
 function World:newConvexCollider(position, modelData, scale) end
-
----Adds a Collider to the world and attaches a `ConvexShape`.  A `ConvexShape` is a convex hull of a set of points, kinda like if you wrapped them in wrapping paper.
----
----#### Notes:
----
----This will throw an error if there are too many colliders in the world.  The limit defaults to 16384 and can be changed in `lovr.physics.newWorld`.
----
----@param x? number The x coordinate of the collider, in meters.
----@param y? number The y coordinate of the collider, in meters.
----@param z? number The z coordinate of the collider, in meters.
----@param model Model The Model to compute a convex hull from.
----@param scale? number A scale to apply to the points.
----@return Collider collider The new Collider.
-function World:newConvexCollider(x, y, z, model, scale) end
-
----Adds a Collider to the world and attaches a `ConvexShape`.  A `ConvexShape` is a convex hull of a set of points, kinda like if you wrapped them in wrapping paper.
----
----#### Notes:
----
----This will throw an error if there are too many colliders in the world.  The limit defaults to 16384 and can be changed in `lovr.physics.newWorld`.
----
----@param position Vec3 The position of the center of the capsule, in meters.
----@param model Model The Model to compute a convex hull from.
----@param scale? number A scale to apply to the points.
----@return Collider collider The new Collider.
-function World:newConvexCollider(position, model, scale) end
 
 ---Adds a Collider to the world and attaches a `ConvexShape`.  A `ConvexShape` is a convex hull of a set of points, kinda like if you wrapped them in wrapping paper.
 ---
@@ -3018,7 +2989,7 @@ function World:newConvexCollider(x, y, z, mesh, scale) end
 ---
 ---This will throw an error if there are too many colliders in the world.  The limit defaults to 16384 and can be changed in `lovr.physics.newWorld`.
 ---
----@param position Vec3 The position of the center of the capsule, in meters.
+---@param position vector The position of the center of the capsule, in meters.
 ---@param mesh Mesh The Mesh to compute a convex hull from.  It must use the `cpu` storage mode.
 ---@param scale? number A scale to apply to the points.
 ---@return Collider collider The new Collider.
@@ -3044,7 +3015,7 @@ function World:newConvexCollider(x, y, z, template, scale) end
 ---
 ---This will throw an error if there are too many colliders in the world.  The limit defaults to 16384 and can be changed in `lovr.physics.newWorld`.
 ---
----@param position Vec3 The position of the center of the capsule, in meters.
+---@param position vector The position of the center of the capsule, in meters.
 ---@param template ConvexShape An existing ConvexShape to clone.
 ---@param scale? number A scale to apply to the points.
 ---@return Collider collider The new Collider.
@@ -3074,7 +3045,7 @@ function World:newCylinderCollider(x, y, z, radius, length) end
 ---
 ---The length of the cylinder goes along its local Z axis.
 ---
----@param position Vec3 The position of the center of the cylinder, in meters.
+---@param position vector The position of the center of the cylinder, in meters.
 ---@param radius? number The radius of the cylinder, in meters.
 ---@param length? number The length of the cylinder, in meters.
 ---@return Collider collider The new Collider.
@@ -3084,7 +3055,7 @@ function World:newCylinderCollider(position, radius, length) end
 ---
 ---Colliders with mesh shapes are immobile and can only be used for static environment objects. The collider will be kinematic and forces/velocities will not move it.  Also, these colliders will not detect collisions with other kinematic objects.
 ---
----MeshShapes are not treated as solid objects, but instead a collection of triangles.  They do not have mass or volume, and there is no concept of being "inside" a mesh.  `ConvexShape` is a good alternative for solid objects with an arbitrary shape.
+---MeshShapes are not treated as solid objects, but instead a collection of triangles.  They do not have mass or volume, and there is no concept of being "inside" a mesh.  `ConvexShape` is a good alternative for making solid objects.
 ---
 ---#### Notes:
 ---
@@ -3099,7 +3070,7 @@ function World:newMeshCollider(vertices, indices) end
 ---
 ---Colliders with mesh shapes are immobile and can only be used for static environment objects. The collider will be kinematic and forces/velocities will not move it.  Also, these colliders will not detect collisions with other kinematic objects.
 ---
----MeshShapes are not treated as solid objects, but instead a collection of triangles.  They do not have mass or volume, and there is no concept of being "inside" a mesh.  `ConvexShape` is a good alternative for solid objects with an arbitrary shape.
+---MeshShapes are not treated as solid objects, but instead a collection of triangles.  They do not have mass or volume, and there is no concept of being "inside" a mesh.  `ConvexShape` is a good alternative for making solid objects.
 ---
 ---#### Notes:
 ---
@@ -3113,21 +3084,7 @@ function World:newMeshCollider(modelData) end
 ---
 ---Colliders with mesh shapes are immobile and can only be used for static environment objects. The collider will be kinematic and forces/velocities will not move it.  Also, these colliders will not detect collisions with other kinematic objects.
 ---
----MeshShapes are not treated as solid objects, but instead a collection of triangles.  They do not have mass or volume, and there is no concept of being "inside" a mesh.  `ConvexShape` is a good alternative for solid objects with an arbitrary shape.
----
----#### Notes:
----
----The triangles in a MeshShape should use counterclockwise winding.
----
----@param model Model A Model to use for the mesh data.  Similar to calling `Model:getTriangles` and passing it to this function, but has better performance.
----@return Collider collider The new Collider.
-function World:newMeshCollider(model) end
-
----Adds a Collider to the world and attaches a `MeshShape`.
----
----Colliders with mesh shapes are immobile and can only be used for static environment objects. The collider will be kinematic and forces/velocities will not move it.  Also, these colliders will not detect collisions with other kinematic objects.
----
----MeshShapes are not treated as solid objects, but instead a collection of triangles.  They do not have mass or volume, and there is no concept of being "inside" a mesh.  `ConvexShape` is a good alternative for solid objects with an arbitrary shape.
+---MeshShapes are not treated as solid objects, but instead a collection of triangles.  They do not have mass or volume, and there is no concept of being "inside" a mesh.  `ConvexShape` is a good alternative for making solid objects.
 ---
 ---#### Notes:
 ---
@@ -3141,7 +3098,7 @@ function World:newMeshCollider(mesh) end
 ---
 ---Colliders with mesh shapes are immobile and can only be used for static environment objects. The collider will be kinematic and forces/velocities will not move it.  Also, these colliders will not detect collisions with other kinematic objects.
 ---
----MeshShapes are not treated as solid objects, but instead a collection of triangles.  They do not have mass or volume, and there is no concept of being "inside" a mesh.  `ConvexShape` is a good alternative for solid objects with an arbitrary shape.
+---MeshShapes are not treated as solid objects, but instead a collection of triangles.  They do not have mass or volume, and there is no concept of being "inside" a mesh.  `ConvexShape` is a good alternative for making solid objects.
 ---
 ---#### Notes:
 ---
@@ -3170,7 +3127,7 @@ function World:newSphereCollider(x, y, z, radius) end
 ---
 ---This will throw an error if there are too many colliders in the world.  The limit defaults to 16384 and can be changed in `lovr.physics.newWorld`.
 ---
----@param position Vec3 The position of the center of the sphere, in meters.
+---@param position vector The position of the center of the sphere, in meters.
 ---@param radius? number The radius of the sphere, in meters.
 ---@return Collider collider The new Collider.
 function World:newSphereCollider(position, radius) end
@@ -3230,7 +3187,7 @@ function World:newTerrainCollider(scale, callback, samples) end
 ---@param az number The z component of the axis of rotation.
 ---@param maxDistance? number The maximum distance at which a shape can be detected, in meters.  Zero will detect shapes touching the input shape, 1.0 will detect shapes within 1 meter of the input shape, etc.
 ---@param filter? string Tags to filter by, or nil for no filter.
----@param callback function The callback to call for each intersection detected.
+---@param callback? function The callback to call for each intersection detected.
 function World:overlapShape(shape, x, y, z, angle, ax, ay, az, maxDistance, filter, callback) end
 
 ---Places a shape in the World, returning any shapes it intersects.
@@ -3245,11 +3202,11 @@ function World:overlapShape(shape, x, y, z, angle, ax, ay, az, maxDistance, filt
 ---Provide an optional callback to call for each shape detected.  If the callbacks nil, this function returns the first shape detected.  In either case this function returns the shape, the hit position, and a penetration vector.  The penetration vector represents the direction and distance the shape would need to move so that it is no longer colliding with the input shape.
 ---
 ---@param shape Shape The Shape to test.
----@param position Vec3 The position to place the shape at, in meters.
----@param orientation Quat The orientation of the shape.
+---@param position vector The position to place the shape at, in meters.
+---@param orientation quaternion The orientation of the shape.
 ---@param maxDistance? number The maximum distance at which a shape can be detected, in meters.  Zero will detect shapes touching the input shape, 1.0 will detect shapes within 1 meter of the input shape, etc.
 ---@param filter? string Tags to filter by, or nil for no filter.
----@param callback function The callback to call for each intersection detected.
+---@param callback? function The callback to call for each intersection detected.
 function World:overlapShape(shape, position, orientation, maxDistance, filter, callback) end
 
 ---Places a shape in the World, returning any shapes it intersects.
@@ -3295,8 +3252,8 @@ function World:overlapShape(shape, x, y, z, angle, ax, ay, az, maxDistance, filt
 ---Provide an optional callback to call for each shape detected.  If the callbacks nil, this function returns the first shape detected.  In either case this function returns the shape, the hit position, and a penetration vector.  The penetration vector represents the direction and distance the shape would need to move so that it is no longer colliding with the input shape.
 ---
 ---@param shape Shape The Shape to test.
----@param position Vec3 The position to place the shape at, in meters.
----@param orientation Quat The orientation of the shape.
+---@param position vector The position to place the shape at, in meters.
+---@param orientation quaternion The orientation of the shape.
 ---@param maxDistance? number The maximum distance at which a shape can be detected, in meters.  Zero will detect shapes touching the input shape, 1.0 will detect shapes within 1 meter of the input shape, etc.
 ---@param filter? string Tags to filter by, or nil for no filter.
 ---@return Collider collider The collider that was hit.
@@ -3326,7 +3283,7 @@ function World:overlapShape(shape, position, orientation, maxDistance, filter) e
 ---@param height number The height of the box, in meters
 ---@param depth number The depth of the box, in meters.
 ---@param filter? string An optional tag filter.  Pass one or more tags separated by spaces to only return colliders with those tags.  Or, put `~` in front of the tags to exclude colliders with those tags.
----@param callback function A function to call when a collider is detected.  The function will be called with a single `Collider` argument.
+---@param callback? function A function to call when a collider is detected.  The function will be called with a single `Collider` argument.
 function World:queryBox(x, y, z, width, height, depth, filter, callback) end
 
 ---Find colliders within an axis-aligned bounding box.  This is a fast but imprecise query that only checks a rough box around colliders.  Use `World:overlapShape` for an exact collision test.
@@ -3339,10 +3296,10 @@ function World:queryBox(x, y, z, width, height, depth, filter, callback) end
 ---
 ---This will return sleeping colliders and sensors, but it will ignore disabled colliders.
 ---
----@param position Vec3 The position of the center of the box, in meters.
----@param size Vec3 The size of the box, in meters.
+---@param position vector The position of the center of the box, in meters.
+---@param size vector The size of the box, in meters.
 ---@param filter? string An optional tag filter.  Pass one or more tags separated by spaces to only return colliders with those tags.  Or, put `~` in front of the tags to exclude colliders with those tags.
----@param callback function A function to call when a collider is detected.  The function will be called with a single `Collider` argument.
+---@param callback? function A function to call when a collider is detected.  The function will be called with a single `Collider` argument.
 function World:queryBox(position, size, filter, callback) end
 
 ---Find colliders within an axis-aligned bounding box.  This is a fast but imprecise query that only checks a rough box around colliders.  Use `World:overlapShape` for an exact collision test.
@@ -3375,8 +3332,8 @@ function World:queryBox(x, y, z, width, height, depth, filter) end
 ---
 ---This will return sleeping colliders and sensors, but it will ignore disabled colliders.
 ---
----@param position Vec3 The position of the center of the box, in meters.
----@param size Vec3 The size of the box, in meters.
+---@param position vector The position of the center of the box, in meters.
+---@param size vector The size of the box, in meters.
 ---@param filter? string An optional tag filter.  Pass one or more tags separated by spaces to only return colliders with those tags.  Or, put `~` in front of the tags to exclude colliders with those tags.
 ---@return Collider collider A Collider that intersected the box.
 function World:queryBox(position, size, filter) end
@@ -3392,7 +3349,7 @@ function World:queryBox(position, size, filter) end
 ---@param z number The z coordinate of the center of the sphere.
 ---@param radius number The radius of the sphere, in meters
 ---@param filter? string An optional tag filter.  Pass one or more tags separated by spaces to only return colliders with those tags.  Or, put `~` in front of the tags to exclude colliders with those tags.
----@param callback function A function to call when an intersection is detected.  The function will be called with a single `Collider` argument.
+---@param callback? function A function to call when an intersection is detected.  The function will be called with a single `Collider` argument.
 function World:querySphere(x, y, z, radius, filter, callback) end
 
 ---Find colliders within a sphere.  This is a fast but imprecise query that only checks a rough box around colliders.  Use `World:overlapShape` for an exact collision test.
@@ -3401,10 +3358,10 @@ function World:querySphere(x, y, z, radius, filter, callback) end
 ---
 ---Pass a callback function to call for each collider detected, or leave the callback off and this function will return the first collider found.
 ---
----@param position Vec3 The position of the center of the sphere.
+---@param position vector The position of the center of the sphere.
 ---@param radius number The radius of the sphere, in meters
 ---@param filter? string An optional tag filter.  Pass one or more tags separated by spaces to only return colliders with those tags.  Or, put `~` in front of the tags to exclude colliders with those tags.
----@param callback function A function to call when an intersection is detected.  The function will be called with a single `Collider` argument.
+---@param callback? function A function to call when an intersection is detected.  The function will be called with a single `Collider` argument.
 function World:querySphere(position, radius, filter, callback) end
 
 ---Find colliders within a sphere.  This is a fast but imprecise query that only checks a rough box around colliders.  Use `World:overlapShape` for an exact collision test.
@@ -3427,7 +3384,7 @@ function World:querySphere(x, y, z, radius, filter) end
 ---
 ---Pass a callback function to call for each collider detected, or leave the callback off and this function will return the first collider found.
 ---
----@param position Vec3 The position of the center of the sphere.
+---@param position vector The position of the center of the sphere.
 ---@param radius number The radius of the sphere, in meters
 ---@param filter? string An optional tag filter.  Pass one or more tags separated by spaces to only return colliders with those tags.  Or, put `~` in front of the tags to exclude colliders with those tags.
 ---@return Collider collider A Collider that intersected the sphere.
@@ -3439,9 +3396,9 @@ function World:querySphere(position, radius, filter) end
 ---
 ---#### Notes:
 ---
----The callback function is passed a collider, a shape, a world-space point, a world-space normal, and a fraction:
+---The callback function is passed a collider, a shape, a world-space point, a world-space normal, a triangle index, and a fraction:
 ---
----    function(collider, shape, x, y, z, nx, ny, nz, fraction)
+---    function(collider, shape, x, y, z, nx, ny, nz, tri, fraction)
 ---      return fraction
 ---    end
 ---
@@ -3460,7 +3417,7 @@ function World:querySphere(position, radius, filter) end
 ---@param y2 number The y coordinate of the endpoint of the ray.
 ---@param z2 number The z coordinate of the endpoint of the ray.
 ---@param filter? string An optional tag filter.  Pass one or more tags separated by spaces to only return colliders with those tags.  Or, put `~` in front the tags to exclude colliders with those tags.
----@param callback function The function to call when an intersection is detected (see notes).
+---@param callback? function The function to call when an intersection is detected (see notes).
 function World:raycast(x1, y1, z1, x2, y2, z2, filter, callback) end
 
 ---Traces a ray through the world and calls a function for each collider that was hit.
@@ -3469,9 +3426,9 @@ function World:raycast(x1, y1, z1, x2, y2, z2, filter, callback) end
 ---
 ---#### Notes:
 ---
----The callback function is passed a collider, a shape, a world-space point, a world-space normal, and a fraction:
+---The callback function is passed a collider, a shape, a world-space point, a world-space normal, a triangle index, and a fraction:
 ---
----    function(collider, shape, x, y, z, nx, ny, nz, fraction)
+---    function(collider, shape, x, y, z, nx, ny, nz, tri, fraction)
 ---      return fraction
 ---    end
 ---
@@ -3483,10 +3440,10 @@ function World:raycast(x1, y1, z1, x2, y2, z2, filter, callback) end
 ---
 ---Raycasts will hit sensors and sleeping colliders, but will not hit disabled colliders.
 ---
----@param origin Vec3 The origin of the ray.
----@param endpoint Vec3 The endpoint of the ray.
+---@param origin vector The origin of the ray.
+---@param endpoint vector The endpoint of the ray.
 ---@param filter? string An optional tag filter.  Pass one or more tags separated by spaces to only return colliders with those tags.  Or, put `~` in front the tags to exclude colliders with those tags.
----@param callback function The function to call when an intersection is detected (see notes).
+---@param callback? function The function to call when an intersection is detected (see notes).
 function World:raycast(origin, endpoint, filter, callback) end
 
 ---Traces a ray through the world and calls a function for each collider that was hit.
@@ -3495,9 +3452,9 @@ function World:raycast(origin, endpoint, filter, callback) end
 ---
 ---#### Notes:
 ---
----The callback function is passed a collider, a shape, a world-space point, a world-space normal, and a fraction:
+---The callback function is passed a collider, a shape, a world-space point, a world-space normal, a triangle index, and a fraction:
 ---
----    function(collider, shape, x, y, z, nx, ny, nz, fraction)
+---    function(collider, shape, x, y, z, nx, ny, nz, tri, fraction)
 ---      return fraction
 ---    end
 ---
@@ -3524,7 +3481,7 @@ function World:raycast(origin, endpoint, filter, callback) end
 ---@return number nx The x component of the normal vector.
 ---@return number ny The y component of the normal vector.
 ---@return number nz The z component of the normal vector.
----@return number triangle The index of the triangle that was hit, or nil if a MeshShape was not hit.
+---@return number | nil triangle The index of the triangle that was hit, or nil if a MeshShape was not hit.
 function World:raycast(x1, y1, z1, x2, y2, z2, filter) end
 
 ---Traces a ray through the world and calls a function for each collider that was hit.
@@ -3533,9 +3490,9 @@ function World:raycast(x1, y1, z1, x2, y2, z2, filter) end
 ---
 ---#### Notes:
 ---
----The callback function is passed a collider, a shape, a world-space point, a world-space normal, and a fraction:
+---The callback function is passed a collider, a shape, a world-space point, a world-space normal, a triangle index, and a fraction:
 ---
----    function(collider, shape, x, y, z, nx, ny, nz, fraction)
+---    function(collider, shape, x, y, z, nx, ny, nz, tri, fraction)
 ---      return fraction
 ---    end
 ---
@@ -3547,8 +3504,8 @@ function World:raycast(x1, y1, z1, x2, y2, z2, filter) end
 ---
 ---Raycasts will hit sensors and sleeping colliders, but will not hit disabled colliders.
 ---
----@param origin Vec3 The origin of the ray.
----@param endpoint Vec3 The endpoint of the ray.
+---@param origin vector The origin of the ray.
+---@param endpoint vector The endpoint of the ray.
 ---@param filter? string An optional tag filter.  Pass one or more tags separated by spaces to only return colliders with those tags.  Or, put `~` in front the tags to exclude colliders with those tags.
 ---@return Collider collider The Collider that was hit.
 ---@return Shape shape The Shape that was hit.
@@ -3558,7 +3515,7 @@ function World:raycast(x1, y1, z1, x2, y2, z2, filter) end
 ---@return number nx The x component of the normal vector.
 ---@return number ny The y component of the normal vector.
 ---@return number nz The z component of the normal vector.
----@return number triangle The index of the triangle that was hit, or nil if a MeshShape was not hit.
+---@return number | nil triangle The index of the triangle that was hit, or nil if a MeshShape was not hit.
 function World:raycast(origin, endpoint, filter) end
 
 ---Sets the angular damping of the World.  Angular damping makes things less "spinny", making them slow down their angular velocity over time. Damping is only applied when angular velocity is over the threshold value.
@@ -3569,6 +3526,7 @@ function World:raycast(origin, endpoint, filter) end
 ---
 ---@param damping number The angular damping.
 ---@param threshold? number Velocity limit below which the damping is not applied.
+---@deprecated
 function World:setAngularDamping(damping, threshold) end
 
 ---Assigns collision callbacks to the world.  These callbacks are used to filter collisions or get notifications when colliders start or stop touching.  Callbacks are called during `World:update`.
@@ -3622,7 +3580,7 @@ function World:setAngularDamping(damping, threshold) end
 ---})
 ---```
 ---
----@param callbacks {filter: function, enter: function, exit: function, contact: function} The World collision callbacks.
+---@param callbacks {filter: function, enter: function, exit: function, contact: function} The World collision callbacks.  All of them are optional.
 function World:setCallbacks(callbacks) end
 
 ---Sets the World's gravity.  Gravity is a constant acceleration applied to all colliders.  The default is `(0, -9.81, 0)` meters per second squared, causing colliders to fall downward.
@@ -3646,7 +3604,7 @@ function World:setGravity(xg, yg, zg) end
 ---
 ---Kinematic colliders ignore gravity, since they are not moved by forces.  Colliders with higher mass do not fall faster.
 ---
----@param gravity Vec3 The gravity force.
+---@param gravity vector The gravity force.
 function World:setGravity(gravity) end
 
 ---Sets the linear damping of the World.  Linear damping is similar to drag or air resistance, slowing down colliders over time as they move. Damping is only applied when linear velocity is over the threshold value.
@@ -3659,6 +3617,7 @@ function World:setGravity(gravity) end
 ---
 ---@param damping number The linear damping.
 ---@param threshold? number Velocity limit below which the damping is not applied.
+---@deprecated
 function World:setLinearDamping(damping, threshold) end
 
 ---Sets the response time factor of the World.
@@ -3668,6 +3627,7 @@ function World:setLinearDamping(damping, threshold) end
 ---The value can be any positive number.  It can be changed on a per-joint basis for `DistanceJoint` and `BallJoint` objects.
 ---
 ---@param responseTime number The new response time setting for the World.
+---@deprecated
 function World:setResponseTime(responseTime) end
 
 ---Sets whether colliders can go to sleep in the World.
@@ -3681,11 +3641,13 @@ function World:setResponseTime(responseTime) end
 ---Colliders can be manually put to sleep or woken up using `Collider:setAwake`.
 ---
 ---@param allowed boolean Whether colliders can sleep.
+---@deprecated
 function World:setSleepingAllowed(allowed) end
 
 ---Sets the step count of the World.  The step count influences how many steps are taken during a call to `World:update`.  A higher number of steps will be slower, but more accurate.  The default step count is 20.
 ---
 ---@param steps number The new step count.
+---@deprecated
 function World:setStepCount(steps) end
 
 ---Sets the tightness of joints in the World.
@@ -3693,6 +3655,7 @@ function World:setStepCount(steps) end
 ---The tightness controls how much force is applied to colliders connected by joints.  With a value of 0, no force will be applied and joints won't have any effect.  With a tightness of 1, a strong force will be used to try to keep the Colliders constrained.  A tightness larger than 1 will overcorrect the joints, which can sometimes be desirable.  Negative tightness values are not supported.
 ---
 ---@param tightness number The new tightness for the World.
+---@deprecated
 function World:setTightness(tightness) end
 
 ---Moves a shape from a starting point to an endpoint and returns any colliders it touches along its path.
@@ -3701,9 +3664,9 @@ function World:setTightness(tightness) end
 ---
 ---#### Notes:
 ---
----The callback function is passed a collider, a shape, a world-space point, a world-space normal, and a fraction:
+---The callback function is passed a collider, a shape, a world-space point, a world-space normal, a triangle index (for mesh shapes), and a fraction:
 ---
----    function(collider, shape, x, y, z, nx, ny, nz, fraction)
+---    function(collider, shape, x, y, z, nx, ny, nz, tri, fraction)
 ---      return fraction
 ---    end
 ---
@@ -3736,9 +3699,9 @@ function World:shapecast(shape, x1, y1, z1, x2, y2, z2, angle, ax, ay, az, filte
 ---
 ---#### Notes:
 ---
----The callback function is passed a collider, a shape, a world-space point, a world-space normal, and a fraction:
+---The callback function is passed a collider, a shape, a world-space point, a world-space normal, a triangle index (for mesh shapes), and a fraction:
 ---
----    function(collider, shape, x, y, z, nx, ny, nz, fraction)
+---    function(collider, shape, x, y, z, nx, ny, nz, tri, fraction)
 ---      return fraction
 ---    end
 ---
@@ -3751,9 +3714,9 @@ function World:shapecast(shape, x1, y1, z1, x2, y2, z2, angle, ax, ay, az, filte
 ---Shapecasts will hit sensors and sleeping colliders, but will not hit disabled colliders.
 ---
 ---@param shape Shape The Shape to cast.
----@param position Vec3 The position to start at.
----@param destination Vec3 The position to move the shape to.
----@param orientation Quat The orientation of the shape.
+---@param position vector The position to start at.
+---@param destination vector The position to move the shape to.
+---@param orientation quaternion The orientation of the shape.
 ---@param filter? string An optional tag filter.  Pass one or more tags separated by spaces to only return colliders with those tags.  Or, put `~` in front the tags to exclude colliders with those tags.
 ---@param callback function The function to call when an intersection is detected (see notes).
 function World:shapecast(shape, position, destination, orientation, filter, callback) end
@@ -3764,9 +3727,9 @@ function World:shapecast(shape, position, destination, orientation, filter, call
 ---
 ---#### Notes:
 ---
----The callback function is passed a collider, a shape, a world-space point, a world-space normal, and a fraction:
+---The callback function is passed a collider, a shape, a world-space point, a world-space normal, a triangle index (for mesh shapes), and a fraction:
 ---
----    function(collider, shape, x, y, z, nx, ny, nz, fraction)
+---    function(collider, shape, x, y, z, nx, ny, nz, tri, fraction)
 ---      return fraction
 ---    end
 ---
@@ -3798,6 +3761,8 @@ function World:shapecast(shape, position, destination, orientation, filter, call
 ---@return number nx The x component of the normal vector.
 ---@return number ny The y component of the normal vector.
 ---@return number nz The z component of the normal vector.
+---@return number triangle The triangle that was hit, or `nil` if a MeshShape was not hit.
+---@return number fraction The fraction along the ray where the impact occurred.
 function World:shapecast(shape, x1, y1, z1, x2, y2, z2, angle, ax, ay, az, filter) end
 
 ---Moves a shape from a starting point to an endpoint and returns any colliders it touches along its path.
@@ -3806,9 +3771,9 @@ function World:shapecast(shape, x1, y1, z1, x2, y2, z2, angle, ax, ay, az, filte
 ---
 ---#### Notes:
 ---
----The callback function is passed a collider, a shape, a world-space point, a world-space normal, and a fraction:
+---The callback function is passed a collider, a shape, a world-space point, a world-space normal, a triangle index (for mesh shapes), and a fraction:
 ---
----    function(collider, shape, x, y, z, nx, ny, nz, fraction)
+---    function(collider, shape, x, y, z, nx, ny, nz, tri, fraction)
 ---      return fraction
 ---    end
 ---
@@ -3821,9 +3786,9 @@ function World:shapecast(shape, x1, y1, z1, x2, y2, z2, angle, ax, ay, az, filte
 ---Shapecasts will hit sensors and sleeping colliders, but will not hit disabled colliders.
 ---
 ---@param shape Shape The Shape to cast.
----@param position Vec3 The position to start at.
----@param destination Vec3 The position to move the shape to.
----@param orientation Quat The orientation of the shape.
+---@param position vector The position to start at.
+---@param destination vector The position to move the shape to.
+---@param orientation quaternion The orientation of the shape.
 ---@param filter? string An optional tag filter.  Pass one or more tags separated by spaces to only return colliders with those tags.  Or, put `~` in front the tags to exclude colliders with those tags.
 ---@return Collider collider The Collider that was hit.
 ---@return Shape shape The Shape that was hit.
@@ -3833,15 +3798,13 @@ function World:shapecast(shape, x1, y1, z1, x2, y2, z2, angle, ax, ay, az, filte
 ---@return number nx The x component of the normal vector.
 ---@return number ny The y component of the normal vector.
 ---@return number nz The z component of the normal vector.
+---@return number triangle The triangle that was hit, or `nil` if a MeshShape was not hit.
+---@return number fraction The fraction along the ray where the impact occurred.
 function World:shapecast(shape, position, destination, orientation, filter) end
 
 ---Updates the World, advancing the physics simulation forward in time and moving all the colliders.
 ---
 ---#### Notes:
----
----By default, the World updates at a fixed timestep.  This means that the physics simulation will always update with a constant rate, for example 60 "ticks" per second.  This improves stability of the simulation and decouples physics from rendering.  Collider poses are automatically interpolated between the two most recent ticks, ensuring smooth movement even if the tick rate is lower than the rendering rate.
----
----Fixed timestep can be disabled by setting the `tickRate` option to 0 in `lovr.physics.newWorld`. This will use a variable timestep where the `dt` value passed to this function will be applied directly to the physics simulation.
 ---
 ---This function must be called from the last thread that called `World:setCallbacks`.  If no callbacks are set, then this can be called from any thread.
 ---

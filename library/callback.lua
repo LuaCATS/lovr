@@ -1,6 +1,10 @@
 ---@meta
 
----The `lovr.conf` callback lets you configure default settings for LÖVR.  It is called once right before the game starts.  Make sure you put `lovr.conf` in a file called `conf.lua`, a special file that's loaded before the rest of the framework initializes.
+---The `lovr.conf` callback lets you configure default settings for LÖVR.  It is called once right before the game starts.
+---
+---:::note
+---Make sure you put `lovr.conf` in a file called `conf.lua`, a special file that's loaded before the rest of the framework initializes.
+---:::
 ---
 ---#### Notes:
 ---
@@ -20,7 +24,7 @@
 ---function lovr.conf(t)
 ---
 ---  -- Set the project version and identity
----  t.version = '0.18.0'
+---  t.version = '0.19.0'
 ---  t.identity = 'default'
 ---
 ---  -- Set save directory precedence
@@ -39,9 +43,14 @@
 ---  t.modules.timer = true
 ---
 ---  -- Audio
----  t.audio.spatializer = nil
+---  t.audio.debug = false
 ---  t.audio.samplerate = 48000
 ---  t.audio.start = true
+---  t.audio.reverb.type = 'convolution'
+---  t.audio.reverb.rays = 4096
+---  t.audio.reverb.bounces = 4
+---  t.audio.reverb.duration = 2
+---  t.audio.reverb.rate = .1
 ---
 ---  -- Graphics
 ---  t.graphics.debug = false
@@ -51,9 +60,11 @@
 ---  t.graphics.shadercache = true
 ---
 ---  -- Headset settings
----  t.headset.drivers = { 'openxr', 'simulator' }
+---  t.headset.connect = true
+---  t.headset.start = true
 ---  t.headset.supersample = false
 ---  t.headset.seated = false
+---  t.headset.mask = true
 ---  t.headset.antialias = true
 ---  t.headset.stencil = false
 ---  t.headset.submitdepth = true
@@ -68,6 +79,7 @@
 ---  -- Configure the desktop window
 ---  t.window.width = 1080
 ---  t.window.height = 600
+---  t.window.centered = true
 ---  t.window.fullscreen = false
 ---  t.window.resizable = false
 ---  t.window.title = 'LÖVR'
@@ -75,7 +87,7 @@
 ---end
 ---```
 ---
----@type fun(t: {version: string, identity: string, saveprecedence: boolean, modules: {audio: boolean, data: boolean, event: boolean, graphics: boolean, headset: boolean, math: boolean, physics: boolean, system: boolean, thread: boolean, timer: boolean}, audio: {spatializer: string, samplerate: number, start: boolean}, graphics: {debug: boolean, vsync: boolean, stencil: boolean, antialias: boolean, shadercache: boolean}, headset: {drivers: table, supersample: number, seated: boolean, antialias: boolean, stencil: boolean, submitdepth: boolean, overlay: boolean}, math: {globals: boolean}, thread: {workers: number}, window: {width: number, height: number, fullscreen: boolean, resizable: boolean, title: string, icon: string}}): nil
+---@type fun(t: {version: string, identity: string, saveprecedence: boolean, modules: {audio: boolean, data: boolean, event: boolean, graphics: boolean, headset: boolean, math: boolean, physics: boolean, system: boolean, thread: boolean, timer: boolean}, audio: {debug: boolean, samplerate: number, start: boolean, reverb: {type: ReverbType, rays: number, bounces: number, duration: number, rate: number}}, graphics: {debug: boolean, vsync: boolean, stencil: boolean, antialias: boolean, hdr: boolean, shadercache: boolean}, headset: {connect: boolean, start: boolean, supersample: number, seated: boolean, mask: boolean, antialias: boolean, stencil: boolean, submitdepth: boolean, overlay: boolean}, math: {globals: boolean}, thread: {workers: number}, window: {width: number, height: number, centered: boolean, fullscreen: boolean, resizable: boolean, title: string, icon: string}}): nil
 lovr.conf = nil
 
 ---This callback is called every frame, and receives a `Pass` object as an argument which can be used to render graphics to the display.  If a VR headset is connected, this function renders to the headset display, otherwise it will render to the desktop window.
@@ -96,7 +108,7 @@ lovr.conf = nil
 ---      return lovr.graphics.submit(passes)
 ---    end
 ---
----@type fun(pass: Pass): boolean
+---@type fun(pass: Pass): boolean | nil
 lovr.draw = nil
 
 ---The `lovr.errhand` callback is run whenever an error occurs.  It receives a parameter containing the error message.  It should return a handler function that will run in a loop to render the error screen.
@@ -219,7 +231,11 @@ lovr.focus = nil
 
 ---This callback is called when a key is pressed.
 ---
----@type fun(key: KeyCode, scancode: number, repeat: boolean): nil
+---#### Notes:
+---
+---By default this will be fired only once while a key is held down. This can be changed to fire multiple times by setting `lovr.system.setKeyRepeat` to true. In that case `isrepeat` will become true whenever the event is the result of a key repeat and false on a single press.
+---
+---@type fun(key: KeyCode, scancode: number, isrepeat: boolean): nil
 lovr.keypressed = nil
 
 ---This callback is called when a key is released.
@@ -283,6 +299,38 @@ lovr.log = nil
 ---
 ---@type fun(pass: Pass): boolean
 lovr.mirror = nil
+
+---The `lovr.modelschanged` callback is called when VR models change, usually when hardware is connected or disconnected.
+---
+---#### Example:
+---
+---```lua
+---local models = {}
+---
+---function lovr.draw(pass)
+---  for _, model in pairs(models) do
+---    if lovr.headset.isTracked(model) then
+---      lovr.headset.animate(model)
+---
+---      local x, y, z, angle, ax, ay, az = lovr.headset.getPose(model)
+---      pass:draw(model, x, y, z, 1, angle, ax, ay, az)
+---    end
+---  end
+---end
+---
+---function lovr.modelschanged()
+---  local newModels = {}
+---
+---  for i, key in ipairs(lovr.headset.getModelKeys()) do
+---    newModels[key] = models[key] or lovr.headset.newModel(key)
+---  end
+---
+---  models = newModels
+---end
+---```
+---
+---@type fun(): nil
+lovr.modelschanged = nil
 
 ---The `lovr.mount` callback is called when the headset is put on or taken off.
 ---
@@ -407,6 +455,129 @@ lovr.restart = nil
 ---
 ---@type fun(): function
 lovr.run = nil
+
+---When VR isn't available, LÖVR implements a headset simulator that can be controlled with the keyboard and mouse.  This is implemented in the `lovr.simulate` callback, and can be overridden to customize the simulator behavior.
+---
+---The default implementation reads the keyboard/mouse state and uses the following functions to assign virtual poses and button states:
+---
+---- `lovr.headset.setPosition`
+---- `lovr.headset.setOrientation`
+---- `lovr.headset.setPose`
+---- `lovr.headset.setButton`
+---
+---When VR isn't active, the regular headset accessors (e.g. `lovr.headset.getPosition`) will return the virtual poses and buttons.
+---
+---Overriding the callback could be useful for the following:
+---
+---- Changing the keyboard/mouse inputs used for the simulator
+---- Simulating other devices, or adding support for more buttons
+---- Disabling the simulator in certain situations (e.g. disable simulator when menu is open)
+---- Recording/replaying VR input events for debugging
+---- Synchronizing VR device state over the network
+---
+---#### Example:
+---
+---The default simulator implementation.
+---
+---```lua
+---local mouseX, mouseY, handX, handY, distance, pitch, yaw = nil, nil, 0, 0, .5, nil, nil
+---
+---function lovr.simulate(dt)
+---  if not lovr.math then return end
+---
+---  if not pitch or not yaw then
+---    pitch, yaw = quaternion(lovr.headset.getOrientation()):toeuler()
+---    mouseX, mouseY = lovr.system.getMousePosition()
+---  end
+---
+---  local movespeed = 3
+---  local sprintspeed = 15
+---  local walkspeed = .5
+---  local turnspeed = .005
+---  local turnsmooth = 30
+---
+---  local click = lovr.system.isMouseDown(1)
+---
+---  lovr.system.setMouseMode(click and 'relative' or 'normal')
+---
+---  local lastX, lastY = mouseX, mouseY
+---  mouseX, mouseY = lovr.system.getMousePosition()
+---
+---  if click then
+---    yaw = yaw - (mouseX - lastX or mouseX) * turnspeed
+---    pitch = pitch - (mouseY - lastY or mouseY) * turnspeed
+---    pitch = math.min(pitch, math.pi / 2)
+---    pitch = math.max(pitch, -math.pi / 2)
+---  else
+---    handX, handY = mouseX, mouseY
+---  end
+---
+---  local trigger = lovr.system.isMouseDown(2)
+---  lovr.headset.setButton('hand/left', 'trigger', trigger)
+---  lovr.headset.setButton('hand/left/point', 'trigger', trigger)
+---
+---  -- Head
+---
+---  local angle, ax, ay, az = lovr.headset.getOrientation()
+---  local target = quaternion(yaw, 0, 1, 0) * quaternion(pitch, 1, 0, 0)
+---  local orientation = quaternion(angle, ax, ay, az):slerp(target, 1 - math.exp(-turnsmooth * dt))
+---
+---  local sprint = lovr.system.isKeyDown('lshift', 'rshift')
+---  local walk = lovr.system.isKeyDown('lctrl', 'rctrl')
+---  local forward = lovr.system.isKeyDown('w', 'up')
+---  local backward = lovr.system.isKeyDown('s', 'down')
+---  local left = lovr.system.isKeyDown('a', 'left')
+---  local right = lovr.system.isKeyDown('d', 'right')
+---  local up = lovr.system.isKeyDown('q')
+---  local down = lovr.system.isKeyDown('e')
+---
+---  local vx = left and -1 or right and 1 or 0
+---  local vy = down and -1 or up and 1 or 0
+---  local vz = forward and -1 or backward and 1 or 0
+---  local speed = sprint and sprintspeed or walk and walkspeed or movespeed
+---  local velocity = vector(vx, vy, vz):normalize() * speed * dt
+---  local position = vector(lovr.headset.getPosition('head')) + orientation * velocity
+---  lovr.headset.setPose('head', position, orientation)
+---
+---  -- Hand
+---
+---  local left, right, up, down = lovr.headset.getViewAngles(1)
+---  local near, far = lovr.headset.getClipDistance()
+---  local inverseProjection = mat4():fov(left, right, up, down, near, far):invert()
+---
+---  local width, height = lovr.system.getWindowDimensions()
+---  local coordinate = vector(handX / width * 2 - 1, handY / height * 2 - 1, 1, 1)
+---  local direction = (orientation * (inverseProjection * coordinate)):normalize()
+---
+---  distance = distance * (1 + lovr.system._getScrollDelta() * .05)
+---  distance = math.min(distance, 10)
+---  distance = math.max(distance, .05)
+---
+---  local handPosition = position + direction * distance
+---  local handOrientation = quaternion.lookdir(direction, orientation * vector.up)
+---
+---  lovr.headset.setPose('hand/left', handPosition, handOrientation)
+---  lovr.headset.setPose('hand/left/point', handPosition, handOrientation)
+---end
+---```
+---
+---@type fun(dt: number): nil
+lovr.simulate = nil
+
+---The `lovr.taskready` callback is called when a task is ready to run after making an async call.
+---
+---The default implementation is to resume it, but this can be overidden to customize the task scheduling behavior.
+---
+---#### Example:
+---
+---```lua
+---function lovr.taskready(task)
+---  assert(lovr.task.resume(task))
+---end
+---```
+---
+---@type fun(task: thread): nil
+lovr.taskready = nil
 
 ---This callback is called when text has been entered.
 ---
